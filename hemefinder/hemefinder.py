@@ -21,6 +21,8 @@ from sklearn.cluster import KMeans
 
 from .additional_functions import DIST_PROBE_ALPHA, DIST_PROBE_BETA, ANGLE_PAB, DIST_PROBE_OXYGEN, ANGLE_POC, _parse_molecule, _print_pdb, print_file, _check_actual_motif, _check_possible_mutations, _calculate_center_and_radius
 
+
+#
 input = '2yoo.pdb'
 pdb_filename = 'output_' + input 
 pdb_file, xyz_pdb, traj_pdb, top_pdb = load_pdb(input,path_files)
