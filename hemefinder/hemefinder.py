@@ -18,16 +18,24 @@ from numpy import  zeros, float, array, dot, outer, argsort, linalg, identity
 import itertools
 import mdtraj as md 
 from sklearn.cluster import KMeans
-
 from .additional_functions import DIST_PROBE_ALPHA, DIST_PROBE_BETA, ANGLE_PAB, DIST_PROBE_OXYGEN, ANGLE_POC, _parse_molecule, _print_pdb, print_file, _check_actual_motif, _check_possible_mutations, _calculate_center_and_radius
+from .utils import load_pdb, volume_pyKVFinder, elipsoid, run_biometall
 
-
-#
 input = '2yoo.pdb'
 pdb_filename = 'output_' + input 
+
+#Load pdb for cavity detection
 pdb_file, xyz_pdb, traj_pdb, top_pdb = load_pdb(input,path_files)
+
+#Detect cavities and calculate volumen
 dic_output_volumes = volume_pyKVFinder(pdb_file, input,path_files)
+
+#Make ellipsoid
 list_out_elip, list_cav = elipsoid(input, dic_output_volumes,path_files)
+
+#Detect close residues
+
+#Run biometall
 run_biometall(input, min_coordinators=1, min_sidechain=1,
                 residues='[CYS]', motif='', grid_step=1.0,
                 cluster_cutoff=0.0, pdb=False,
