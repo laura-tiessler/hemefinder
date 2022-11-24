@@ -7,19 +7,8 @@ Copyright by Laura Tiessler-Sala
 """
 
 import os
-import re
-import multiprocessing
-import psutil
-import copy
-import csv
-import pyKVFinder
-import numpy as np
-from numpy import  zeros, float, array, dot, outer, argsort, linalg, identity
-import itertools
-import mdtraj as md 
-from sklearn.cluster import KMeans
-from .additional_functions import DIST_PROBE_ALPHA, DIST_PROBE_BETA, ANGLE_PAB, DIST_PROBE_OXYGEN, ANGLE_POC, _parse_molecule, _print_pdb, print_file, _check_actual_motif, _check_possible_mutations, _calculate_center_and_radius
-from .utils import load_pdb, volume_pyKVFinder, elipsoid, run_biometall
+from .utils.volume_elipsoid volume_pyKVFinder, elipsoid
+
 
 input = '2yoo.pdb'
 pdb_filename = 'output_' + input 
