@@ -1,9 +1,18 @@
 from numpy import  zeros, float, array, dot, outer, argsort, linalg, identity
 import pyKVFinder
+from .print import print_clusters
+from .parser import load_cav, load_kmeans
+from sklearn.cluster import KMeans
+
+def kmeans(pdb_id, f, num_clus, path_files):
+    file_cav, xyz_cav, traj_cav = load_cav(pdb_id,f,path_files)
+    model = KMeans(n_clusters=num_clus)
+    model.fit(xyz_cav)
+    k_means_clusters = model.fit_predict(xyz_cav)
+    return k_means_clusters, xyz_cav
 
 
-
-def volume_pyKVFinder(pdb, pdb_id,path_files):
+def volume_pyKVFinder(pdb, pdb_id, path_files):
 
     """
     This function calculates the cavities inside the protein using KVFinder. It also calculates the volume, surface and area.
@@ -40,19 +49,18 @@ def volume_pyKVFinder(pdb, pdb_id,path_files):
             pyKVFinder.export(output_cavity, cavities, surface, vertices, selection = [index]) 
             if float(v)>259 and float(v)<2000:
                 num_clus = int(1)
-                labels, xyz = kmeans(input, index,num_clus, path_files)
-                index_kmeans = print_clusters(labels, xyz, 'output_cavities_%s_%s' %(input[:-4],index))
+                labels, xyz = kmeans(pdb_id, index,num_clus, path_files)
+                index_kmeans = print_clusters(labels, xyz, 'output_cavities_%s_%s' %(pdb_id[:-4],index))
                 dic_output[index] = index_kmeans
                 print('From pdb id %s site %s: volume is %s' %(pdb_id,index, v))
             elif float(v)>2000:
                 num_clus = int(v/1000)
-                labels, xyz = kmeans(input, index,num_clus, path_files)
-                index_kmeans = print_clusters(labels, xyz, 'output_cavities_%s_%s' %(input[:-4],index))
+                labels, xyz = kmeans(pdb_id, index,num_clus, path_files)
+                index_kmeans = print_clusters(labels, xyz, 'output_cavities_%s_%s' %(pdb_id[:-4],index))
                 dic_output[index] = index_kmeans
         index+= 1
     print('Processed protein %s and found %s pockets with adequate volume' %(pdb_id, len(dic_output))) 
     return dic_output
-
 
 def atoms_inertia(xyz):
     weights = [1 for a in range(len(xyz))] #fer numpy array de 1
@@ -120,6 +128,7 @@ def elipsoid(pdb_id, dic_out,path_files):
                 print('From pdb id %s site number %s %sthe elipsoid would fit' %(pdb_id, str(ind), str(i_k)))
                 list_elip.append(ind)
                 cavities.append(xyz_cav)
-    if list_elip == []:
-        to_revise.append([pdb_id, 'elipsoid'])
     return list_elip,cavities
+
+
+

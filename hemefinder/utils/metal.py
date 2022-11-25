@@ -1,5 +1,17 @@
+import numpy as np
+import multiprocessing
+import psutil
+import itertools
+import copy
+from functools import partial
+from .data import DIST_PROBE_ALPHA, DIST_PROBE_BETA, ANGLE_PAB
+from .print import _print_pdb, print_file
+from .parser import _parse_molecule
+from .additional_metal import _check_actual_motif, _calculate_center_and_radius, _check_possible_mutations
 
-def run_biometall(input, min_coordinators, min_sidechain, residues, motif, grid_step,  cluster_cutoff, pdb, propose_mutations_to, custom_radius, custom_center, cores_number, backbone_clashes_threshold, sidechain_clashes_threshold, cmd_str):
+
+
+def run_biometall(input, list_cav, min_coordinators, min_sidechain, residues, motif, grid_step,  cluster_cutoff, pdb, propose_mutations_to, custom_radius, custom_center, cores_number, backbone_clashes_threshold, sidechain_clashes_threshold, cmd_str):
 
     with open(input, "r") as f:
         lines = f.read().splitlines()
@@ -25,14 +37,12 @@ def run_biometall(input, min_coordinators, min_sidechain, residues, motif, grid_
     centers, mutations = clustering(coordination_results, residues, motifs, min_coordinators, min_sidechain,
                        mutated_motif, cluster_cutoff, input, name_for_res, res_for_column, atoms_in_res)
 
-    if centers == []:
-        to_revise.append([input, 'elipsoid'])
 
     sorted_data = sorted(centers, key=lambda x: x[2], reverse=True)
+    pdb_filename = 'output_' + input 
     _print_pdb(sorted_data, pdb_filename)
-    print_file(centers, motif, propose_mutations_to, mutations, name_for_res, pdb, input, cmd_str, pdb_file[:-4])
-    if centers == []:
-        to_revise.append([input, 'elipsoid'])
+    print_file(centers, motif, propose_mutations_to, mutations, name_for_res, pdb, input, cmd_str, input[:-4])
+
 
 def checking_input(motif, propose_mutations_to,residues, min_coordinators):
     
