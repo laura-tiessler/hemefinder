@@ -31,7 +31,7 @@ setup(
     description="ate heme binding cavities",
     entry_points={
         'console_scripts': [
-            'hemefinder=hemefinder.cli:main',
+            'hemefinder=hemefinder.__main__:main',
         ],
     },
     install_requires=requirements,

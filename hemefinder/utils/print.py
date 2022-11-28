@@ -1,15 +1,19 @@
 import os
+
 import numpy as np
+
 
 def print_clusters(cluster_num, xyz, output_file):
     np_cluster= np.unique(cluster_num)
     dict_clusters = {}
     index_kmeans = []
-    for pos,cluster in np.ndenumerate(cluster_num):
+
+    for pos, cluster in np.ndenumerate(cluster_num):
         if cluster not in dict_clusters:
             dict_clusters[cluster] = list([xyz[pos]])
         else:
             dict_clusters[cluster].extend([xyz[pos]])
+
     for key in dict_clusters.keys():
         output = output_file + '_' + str(key) + '.xyz'
         with open(output, 'w') as f:

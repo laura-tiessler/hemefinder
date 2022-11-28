@@ -1,14 +1,16 @@
-import numpy as np
-import multiprocessing
-import psutil
-import itertools
 import copy
+import itertools
+import multiprocessing
 from functools import partial
-from .data import DIST_PROBE_ALPHA, DIST_PROBE_BETA, ANGLE_PAB
-from .print import _print_pdb, print_file
-from .parser import _parse_molecule
-from .additional_metal import _check_actual_motif, _calculate_center_and_radius, _check_possible_mutations
 
+import numpy as np
+import psutil
+
+from .additional_metal import (_calculate_center_and_radius,
+                               _check_actual_motif, _check_possible_mutations)
+from .data import ANGLE_PAB, DIST_PROBE_ALPHA, DIST_PROBE_BETA
+from .parser import _parse_molecule
+from .print import _print_pdb, print_file
 
 
 def run_biometall(pdb_id, list_cav, min_coordinators, min_sidechain, residues, motif, grid_step,  cluster_cutoff, pdb, propose_mutations_to, custom_radius, custom_center, cores_number, backbone_clashes_threshold, sidechain_clashes_threshold, cmd_str):
@@ -39,7 +41,7 @@ def run_biometall(pdb_id, list_cav, min_coordinators, min_sidechain, residues, m
 
 
     sorted_data = sorted(centers, key=lambda x: x[2], reverse=True)
-    pdb_filename = 'output_' + pdb_id + '.pdb' 
+    pdb_filename = f'{pdb_id}_hemefinder.pdb' 
     _print_pdb(sorted_data, pdb_filename)
     print_file(centers, motif, propose_mutations_to, mutations, name_for_res, pdb, input, cmd_str, input[:-4])
 

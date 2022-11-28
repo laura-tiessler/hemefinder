@@ -1,32 +1,35 @@
 import os
-import pdb
-from turtle import down
+import sys
 import urllib.request
+from urllib.error import HTTPError
+
 import numpy as np
 import pyKVFinder
-from .data import CONVERT_RES_NAMES
-import sys
 
-   
-def read_pdb(file):
+from .data import CONVERT_RES_NAMES
+
+
+def read_pdb(file, outputdir):
 
     """
     This fuction loads the pdb file of the protein with MD traf.
 
     Input:
-        - pdb_id: Path to the pdb file id of the pdb  
+        - pdb_id: Path to the pdb file id of the pdb
 
     Output:
-        - A numpy array with atomic data (residue number, chain, residue name, atom name, xyz coordinates and radius) for each atom.
+        - A numpy array with atomic data (residue number, chain, residue name,
+        atom name, xyz coordinates and radius) for each atom.
     """
-    
     if file.endswith('.pdb'):
         atomic = pyKVFinder.read_pdb(file)
     else:
-        pdb_file = download_pdb(file, datadir='./')
-        print(pdb_file)
+        pdb_file = download_pdb(file, datadir=outputdir)
+        print(f'Downloading: {file}')
         atomic = pyKVFinder.read_pdb(str(pdb_file))
+
     return atomic
+
 
 def download_pdb(file, datadir):
     """_summary_
@@ -40,27 +43,30 @@ def download_pdb(file, datadir):
     """
     pdb_filename = file + '.pdb' 
     url = 'https://files.rcsb.org/download/' + pdb_filename
-    outfilename =  os.path.join(datadir, pdb_filename)
+    outfilename = os.path.join(datadir, pdb_filename)
     try:
         urllib.request.urlretrieve(url, outfilename)
         return outfilename
-    except Exception as err:
+    except HTTPError as err:
         print(str(err), file=sys.stderr)
         return None
 
-def load_cav(pdb_id, index, path_files):
 
+def load_cav(pdb_id, index, outputdir):
     """
-    This function load the pdb with the cavities that fullfill the requirements.
+    This function load the pdb with the cavities that fullfill the
+    requirements.
 
     Input:
         - pdb id: pdb that you want to load the cavities
-        - index: list of indexes of the cavities 
+        - index: list of indexes of the cavities
     """
-    pdb_cav = 'cavity_' + str(index) + '_' + pdb_id + '.pdb'
-    vdw = pyKVFinder.read_vdw('/HDD/3rd_year/hemefinder/hemefinder/utils/vdw_mod.dat')
-    atomic = pyKVFinder.read_pdb(pdb_cav,vdw)
-    xyz = atomic[:,[4,5,6]]
+    current_dir = os.path.dirname(__file__)
+    data_path = os.path.join(current_dir, 'vdw_mod.dat')
+    pdb_cav = os.path.join(outputdir, f'cavity_{index}_{pdb_id}.pdb')
+    vdw = pyKVFinder.read_vdw(data_path)
+    atomic = pyKVFinder.read_pdb(pdb_cav, vdw)
+    xyz = atomic[:, [4, 5, 6]]
     return pdb_cav, xyz
 
 

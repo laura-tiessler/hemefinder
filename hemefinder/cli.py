@@ -1,19 +1,23 @@
 """Console script for hemefinder."""
 import argparse
+import os
 import sys
 
 
-def main():
+def client() -> dict:
     """Console script for hemefinder."""
     parser = argparse.ArgumentParser()
-    parser.add_argument('_', nargs='*')
-    args = parser.parse_args()
+    parser.add_argument('target', type=str,
+                        help='Molecule PDB file to be analysed.')
+    parser.add_argument('--outputdir', type=str, default='.',
+                        help='Directory where outputs should be stored.')
+    args = vars(parser.parse_args())
 
-    print("Arguments: " + str(args._))
-    print("Replace this message by putting your code into "
-          "hemefinder.cli.main")
-    return 0
+    # Prepare output directory
+    if not os.path.isdir(args['outputdir']):
+        os.mkdir(args['outputdir'])
+    return args
 
 
 if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+    sys.exit(client())  # pragma: no cover
