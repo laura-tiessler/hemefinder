@@ -12,7 +12,7 @@ def kmeans(pdb_id, f, num_clus, path_files):
     return k_means_clusters, xyz_cav
 
 
-def volume_pyKVFinder(pdb, pdb_id, path_files):
+def volume_pyKVFinder(atomic, pdb_id, path_files):
 
     """
     This function calculates the cavities inside the protein using KVFinder. It also calculates the volume, surface and area.
@@ -26,8 +26,6 @@ def volume_pyKVFinder(pdb, pdb_id, path_files):
         - it also exports a pdb with these cavities
 
     """
-    #Read the coordinates of the protein
-    atomic = pyKVFinder.read_pdb(pdb)
 
     #Define values for calculation
     step = 0.6

@@ -1,29 +1,53 @@
 import os
-import mdtraj as md
+import pdb
+from turtle import down
+import urllib.request
 import numpy as np
+import pyKVFinder
+import mdtraj as md
 from .data import CONVERT_RES_NAMES
+import sys
 
-
-def load_pdb(pdb_id,path_files):
+   
+def read_pdb(file):
 
     """
     This fuction loads the pdb file of the protein with MD traf.
 
     Input:
-        - pdb_id: id of the pdb 
-        - Path_files: path where are the pdb files 
+        - pdb_id: Path to the pdb file id of the pdb  
 
     Output:
-        - xyz with coordinates of protein
-        - pdb structure of protein
-        - topology of protein
+        - A numpy array with atomic data (residue number, chain, residue name, atom name, xyz coordinates and radius) for each atom.
     """
+    
+    if file.endswith('.pdb'):
+        atomic = pyKVFinder.read_pdb(file)
+    else:
+        pdb_file = download_pdb(file, datadir='./')
+        print(pdb_file)
+        atomic = pyKVFinder.read_pdb(str(pdb_file))
+    return atomic
 
-    file = os.path.join(path_files,pdb_id)
-    traj=md.load_pdb(file)
-    topology = traj.topology
-    xyz=traj.xyz[0]*10
-    return file, xyz, traj, topology
+def download_pdb(file, datadir):
+    """_summary_
+
+    Args:
+        file (str): pdb id 
+        datadir (str): path where the pdb will be downloaded
+
+    Returns:
+        output_filename (str): path of the pdb file downloaded
+    """
+    pdb_filename = file + '.pdb' 
+    url = 'https://files.rcsb.org/download/' + pdb_filename
+    outfilename =  os.path.join(datadir, pdb_filename)
+    try:
+        urllib.request.urlretrieve(url, outfilename)
+        return outfilename
+    except Exception as err:
+        print(str(err), file=sys.stderr)
+        return None
 
 def load_cav(pdb_id, index,path_files):
 
