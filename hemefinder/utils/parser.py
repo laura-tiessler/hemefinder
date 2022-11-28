@@ -4,7 +4,6 @@ from turtle import down
 import urllib.request
 import numpy as np
 import pyKVFinder
-import mdtraj as md
 from .data import CONVERT_RES_NAMES
 import sys
 
@@ -49,7 +48,7 @@ def download_pdb(file, datadir):
         print(str(err), file=sys.stderr)
         return None
 
-def load_cav(pdb_id, index,path_files):
+def load_cav(pdb_id, index, path_files):
 
     """
     This function load the pdb with the cavities that fullfill the requirements.
@@ -57,14 +56,12 @@ def load_cav(pdb_id, index,path_files):
     Input:
         - pdb id: pdb that you want to load the cavities
         - index: list of indexes of the cavities 
-
-    
     """
-    pdb_cav = 'cavity_' + str(index) + '_' + pdb_id 
-    file = os.path.join(path_files,pdb_cav)
-    traj=md.load_pdb(file)
-    xyz=traj.xyz[0]*10
-    return file, xyz, traj
+    pdb_cav = 'cavity_' + str(index) + '_' + pdb_id + '.pdb'
+    vdw = pyKVFinder.read_vdw('/HDD/3rd_year/hemefinder/hemefinder/utils/vdw_mod.dat')
+    atomic = pyKVFinder.read_pdb(pdb_cav,vdw)
+    xyz = atomic[:,[4,5,6]]
+    return pdb_cav, xyz
 
 
 def load_kmeans(pdb_id, index,kmean_index, path_files):

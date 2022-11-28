@@ -5,7 +5,7 @@ from .parser import load_cav, load_kmeans
 from sklearn.cluster import KMeans
 
 def kmeans(pdb_id, f, num_clus, path_files):
-    file_cav, xyz_cav, traj_cav = load_cav(pdb_id,f,path_files)
+    file_cav, xyz_cav = load_cav(pdb_id,f,path_files)
     model = KMeans(n_clusters=num_clus)
     model.fit(xyz_cav)
     k_means_clusters = model.fit_predict(xyz_cav)
@@ -43,7 +43,7 @@ def volume_pyKVFinder(atomic, pdb_id, path_files):
     dic_output = {}
     for k,v in volume.items():
         if float(v)>259:
-            output_cavity = 'cavity_' + str(index) + '_' + pdb_id
+            output_cavity = 'cavity_' + str(index) + '_' + pdb_id + '.pdb'
             pyKVFinder.export(output_cavity, cavities, surface, vertices, selection = [index]) 
             if float(v)>259 and float(v)<2000:
                 num_clus = int(1)

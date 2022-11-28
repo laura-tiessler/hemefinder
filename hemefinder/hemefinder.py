@@ -14,9 +14,9 @@ from utils.metal import run_biometall
 
 path_files = '/HDD/3rd_year/hemefinder/hemefinder'
 
-input = './2yoo.pdb'
+input = '2yoo'
 pdb_id, extension = os.path.splitext(os.path.basename(input))
-print(pdb_id)
+
 #Load pdb for cavity detection
 atomic = read_pdb(input)
 
@@ -24,12 +24,12 @@ atomic = read_pdb(input)
 dic_output_volumes = volume_pyKVFinder(atomic, pdb_id, path_files)
 
 #Make ellipsoid
-list_out_elip, list_cav = elipsoid(pdb_id, dic_output_volumes,path_files)
+list_out_elip, list_cav = elipsoid(pdb_id, dic_output_volumes, path_files)
 
 #Detect close residues
 
 #Run biometall
-run_biometall(input,pdb_id, list_cav, min_coordinators=1, min_sidechain=1,
+run_biometall(pdb_id, list_cav, min_coordinators=1, min_sidechain=1,
                 residues='[CYS]', motif='', grid_step=1.0,
                 cluster_cutoff=0.0, pdb=False,
                 propose_mutations_to='', custom_radius=None, custom_center=None,

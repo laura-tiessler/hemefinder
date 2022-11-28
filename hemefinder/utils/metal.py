@@ -11,8 +11,8 @@ from .additional_metal import _check_actual_motif, _calculate_center_and_radius,
 
 
 
-def run_biometall(input, pdb_id, list_cav, min_coordinators, min_sidechain, residues, motif, grid_step,  cluster_cutoff, pdb, propose_mutations_to, custom_radius, custom_center, cores_number, backbone_clashes_threshold, sidechain_clashes_threshold, cmd_str):
-
+def run_biometall(pdb_id, list_cav, min_coordinators, min_sidechain, residues, motif, grid_step,  cluster_cutoff, pdb, propose_mutations_to, custom_radius, custom_center, cores_number, backbone_clashes_threshold, sidechain_clashes_threshold, cmd_str):
+    input = pdb_id + '.pdb'
     with open(input, "r") as f:
         lines = f.read().splitlines()
 
