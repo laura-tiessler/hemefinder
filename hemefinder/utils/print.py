@@ -144,3 +144,63 @@ def print_file(centers, motif, propose_mutations_to, mutations, name_for_res, pd
                 line[0], line[1], line[2], line[3], line[4], line[5], pos_width=pos_width, residues_width=residues_width,
                 coord_width=coord_width, probes_width=probes_width, radius_width=radius_width, mutations_width=mutations_width))
     f.close()
+
+
+def create_PDB(
+        scores: np.array,
+        outputfile: str,
+        **kwargs
+    ) -> None:
+        """
+        Generate a PDB-style file with the coordinates of the probes
+        with a score superior to `threshold`. The probes will be
+        stored as `HE` atoms and the cluster centers as `AR` atoms. The
+        `b-factor` will be used to store the score each probe has obtained.
+
+        Before saving any probe coordinate, it will verify whether the probe
+        is at a reasonable distance from any relevant protein atom to mitigate
+        possible noise.
+
+        Args:
+            target (str): Name of the protein used for the computation.
+            outputfile (str): Name of the output file, will be completed with
+                the tag `_brigit.pdb` to differenciate it from other output
+                files.
+            scores (dict): Dict with probe coordinates and their
+                coordination scores. Dimensions will be (len(probes), 4).
+            threshold (float): Coordination score value below which probes will
+                be discarded.
+            centers (np.array): Array with cluster center coordinates and their
+                coordination scores. Similar to `scores`, its dimensions will
+                be (len(cluster_centers), 4).
+            molecule (protein): Protein object.
+        """
+        outputfile = f'{outputfile}_hemefinder.pdb'
+        with open(outputfile, "w") as fo:
+            num_at = 0
+            num_res = 0
+            for entry in scores:
+
+                num_at += 1
+                num_res = 1
+                ch = "A"
+                prb_str = ""
+
+                for idx in range(3):
+                    number = str(round(float(entry[idx]), 3))
+                    prb_center = "{:.8s}".format(number)
+                    if len(prb_center) < 8:
+                        prb_center = " "*(8-len(prb_center)) + prb_center
+                        prb_str += prb_center
+                    else:
+                        prb_str += prb_center
+
+                atom = "HE"
+                blank = " "*(7-len(str(num_at)))
+                fo.write("ATOM" + blank + "%s  %s  SLN %s" %
+                         (num_at, atom, ch))
+                blank = " "*(3-len(str(num_res)))
+                score = str(round(entry[3], 2))
+                score = score if len(score) == 4 else score + '0'
+                fo.write(blank + "%s     %s  1.00  %s          %s\n" %
+                         (num_res, prb_str, score, atom))

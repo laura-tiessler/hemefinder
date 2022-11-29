@@ -1,3 +1,15 @@
+import json
+import os
+
+
+def load_stats():
+    current_dir = os.path.dirname(__file__)
+    stats_path = os.path.join(current_dir, 'stats', 'heme_gaus_statistics.json')
+    with open(stats_path) as json_reader:
+        stats = json.load(json_reader)
+    return stats
+
+
 DIST_PROBE_ALPHA = {
     'CYS': (3.702, 4.561),
     'ASP': (5.617, 5.617),

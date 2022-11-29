@@ -31,18 +31,86 @@ def read_pdb(file, outputdir):
     return atomic
 
 
+def find_coordinators(
+    atomic: np.array,
+    coordinators: list,
+    stats: dict
+) -> list:
+    new_coordinators = []
+
+    if coordinators is not None:
+        for coor in coordinators:
+            if coor in stats.keys():
+                new_coordinators.append(coor)
+        return new_coordinators
+
+    possible_coordinators = []
+    cummulative = 0.0
+
+    for res_name, res_info in stats.items():
+        possible_coordinators.append((res_name, res_info['fitness']))
+
+    possible_coordinators = sorted(
+        possible_coordinators, key=lambda x: x[1], reverse=True
+    )
+
+    for coor in possible_coordinators:
+        new_coordinators.append(coor[0])
+        cummulative += coor[1]
+        if cummulative >= 0.99:
+            return new_coordinators
+
+    print(new_coordinators)
+    return new_coordinators
+
+
+def parse_residues(
+    molecule: np.array,
+    coordinators: list,
+    stats: dict
+) -> (dict, dict):
+    coordinators = find_coordinators(molecule, coordinators, stats)
+
+    alphas = {residue: [] for residue in coordinators}
+    betas = {residue: [] for residue in coordinators}
+
+    for atom in molecule:
+        res_name = atom[2]
+
+        if res_name not in coordinators:
+            continue
+
+        atom_name = atom[3]
+        coors = np.array(atom[4:7], dtype=float)
+
+        if atom_name == 'CA':
+            alphas[res_name].append(coors)
+        elif atom_name == 'CB':
+            betas[res_name].append(coors)
+
+    alphas = {
+        residue: np.array(alphas[residue]).reshape(len(alphas[residue]), 3)
+        for residue in coordinators
+    }
+    betas = {
+        residue: np.array(betas[residue]).reshape(len(betas[residue]), 3)
+        for residue in coordinators
+    }
+    return alphas, betas
+
+
 def download_pdb(file, datadir):
     """_summary_
 
     Args:
-        file (str): pdb id 
+        file (str): pdb id
         datadir (str): path where the pdb will be downloaded
 
     Returns:
         output_filename (str): path of the pdb file downloaded
     """
-    pdb_filename = file + '.pdb' 
-    url = 'https://files.rcsb.org/download/' + pdb_filename
+    pdb_filename = f'{file}.pdb'
+    url = f'https://files.rcsb.org/download/{pdb_filename}'
     outfilename = os.path.join(datadir, pdb_filename)
     try:
         urllib.request.urlretrieve(url, outfilename)
@@ -52,7 +120,7 @@ def download_pdb(file, datadir):
         return None
 
 
-def load_cav(pdb_id, outputdir):
+def load_cav(cavity_path):
     """
     This function load the pdb with the cavities that fullfill the
     requirements.
@@ -60,17 +128,15 @@ def load_cav(pdb_id, outputdir):
     Input:
         - pdb id: pdb that you want to load the cavities
         - outputdir:
-    
+
     Output:
         - xyz_cav: xyz of the cavity
     """
-
     current_dir = os.path.dirname(__file__)
     data_path = os.path.join(current_dir, 'vdw_mod.dat')
-    pdb_cav = os.path.join(outputdir, f'cavity_{pdb_id}.pdb')
     vdw = pyKVFinder.read_vdw(data_path)
-    atomic = pyKVFinder.read_pdb(pdb_cav, vdw)
-    xyz_cav = atomic[:, [4, 5, 6]]
+    atomic = pyKVFinder.read_pdb(cavity_path, vdw)
+    xyz_cav = np.array(atomic[:, [4, 5, 6]], dtype=float)
     return xyz_cav
 
 

@@ -6,7 +6,7 @@ import pyKVFinder
 from numpy import argsort, array, dot, float, identity, linalg, outer, zeros
 from sklearn.cluster import KMeans
 
-from .parser import load_cav, load_kmeans
+from .parser import load_cav
 from .print import print_clusters
 
 
@@ -56,10 +56,12 @@ def volume_pyKVFinder(
     surface, volume, area = pyKVFinder.spatial(cavities, step=step)
     index_cavities = [i+2 for i, vol in enumerate(volume.values()) if vol >238]
     output_cavity = os.path.join(outputdir, f'cavity_{pdb}.pdb')
-    pyKVFinder.export(output_cavity, cavities, surface, vertices, selection=index_cavities)    
-    message = f'Processed protein {pdb} and found: {len(index_cavities)} pockets with adequate volume '
-    print(message)
-    return output_cavity
+    pyKVFinder.export(
+        output_cavity, cavities, surface, vertices, selection=index_cavities
+    )
+    message = f'Processed protein {pdb} and found: {len(index_cavities)}' 
+    message += ' pockets with adequate volume.'
+    return load_cav(output_cavity)
 
 
 def atoms_inertia(xyz):
