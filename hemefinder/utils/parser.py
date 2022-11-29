@@ -52,44 +52,26 @@ def download_pdb(file, datadir):
         return None
 
 
-def load_cav(pdb_id, index, outputdir):
+def load_cav(pdb_id, outputdir):
     """
     This function load the pdb with the cavities that fullfill the
     requirements.
 
     Input:
         - pdb id: pdb that you want to load the cavities
-        - index: list of indexes of the cavities
+        - outputdir:
+    
+    Output:
+        - xyz_cav: xyz of the cavity
     """
+
     current_dir = os.path.dirname(__file__)
     data_path = os.path.join(current_dir, 'vdw_mod.dat')
-    pdb_cav = os.path.join(outputdir, f'cavity_{index}_{pdb_id}.pdb')
+    pdb_cav = os.path.join(outputdir, f'cavity_{pdb_id}.pdb')
     vdw = pyKVFinder.read_vdw(data_path)
     atomic = pyKVFinder.read_pdb(pdb_cav, vdw)
-    xyz = atomic[:, [4, 5, 6]]
-    return pdb_cav, xyz
-
-
-def load_kmeans(pdb_id, index,kmean_index, path_files):
-
-    """
-    This function load the pdb with the cavities that fullfill the requirements.
-
-    Input:
-        - pdb id: pdb that you want to load the cavities
-        - index: list of indexes of the cavities 
-
-    
-    """
-    pdb_cav = 'output_cavities_' + str(pdb_id[:-4]) + '_' + str(index) + '_' + str(kmean_index) + '.xyz'
-    file = os.path.join(path_files,pdb_cav)
-    xyz=[]
-    with open(file, 'r') as f:
-        for line in f:
-            coord = [float(a) for a in line.replace("\n","").split(' ')[1:4]]
-            xyz.append(coord)
-    xyz =np.array(xyz)
-    return file, xyz
+    xyz_cav = atomic[:, [4, 5, 6]]
+    return xyz_cav
 
 
 def _parse_molecule(lines, file_extension):

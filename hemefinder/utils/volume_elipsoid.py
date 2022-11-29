@@ -1,5 +1,6 @@
 import os
 from math import sqrt
+import numpy as np
 
 import pyKVFinder
 from numpy import argsort, array, dot, float, identity, linalg, outer, zeros
@@ -53,41 +54,12 @@ def volume_pyKVFinder(
         surface=surface
     )
     surface, volume, area = pyKVFinder.spatial(cavities, step=step)
-    dic_output = {}
-
-    for k, v in volume.items():
-        if float(v) > 259:
-            output_cavity = os.path.join(
-                outputdir, f'cavity_{index}_{pdb}.pdb'
-            )
-            pyKVFinder.export(
-                output_cavity, cavities, surface, vertices, selection=[index]
-            )
-            if float(v) < 2000:
-                num_clus = int(1)
-                labels, xyz = kmeans(pdb, index, num_clus, outputdir)
-                outputfile = os.path.join(
-                    outputdir, f'output_cavities_{pdb[:-4]}_{index}'
-                )
-                index_kmeans = print_clusters(labels, xyz, outputfile)
-                dic_output[index] = index_kmeans
-                print(f'From PDB: {pdb}; Site: {index}; Volume is {v} A³')
-
-            else:
-                num_clus = int(v // 1000)
-                labels, xyz = kmeans(pdb, index, num_clus, outputdir)
-                outputfile = os.path.join(
-                    outputdir, f'output_cavities_{pdb[:-4]}_{index}'
-                )
-                index_kmeans = print_clusters(labels, xyz, outputfile)
-                dic_output[index] = index_kmeans
-        index += 1
-
-    l_dic = len(dic_output)
-    message = f'Processed Protein {pdb} and found: {l_dic} '
-    message += 'pockets with adequate volume'
+    index_cavities = [i+2 for i, vol in enumerate(volume.values()) if vol >238]
+    output_cavity = os.path.join(outputdir, f'cavity_{pdb}.pdb')
+    pyKVFinder.export(output_cavity, cavities, surface, vertices, selection=index_cavities)    
+    message = f'Processed protein {pdb} and found: {len(index_cavities)} pockets with adequate volume '
     print(message)
-    return dic_output
+    return output_cavity
 
 
 def atoms_inertia(xyz):
@@ -164,3 +136,27 @@ def elipsoid(pdb_id, dic_out, outputdir):
                 cavities.append(xyz_cav)
     print()
     return list_elip, cavities
+
+
+def detect_residues(xyz, alphas, betas, res_for_column, name_for_res):
+    dic_residues = {}
+    alpha_distances = np.sqrt((np.square(xyz[:,np.newaxis]-alphas).sum(axis=2)))
+    beta_distances = np.sqrt((np.square(xyz[:,np.newaxis]-betas).sum(axis=2)))
+    close_residues = np.unique(np.where((alpha_distances<6.5)&(beta_distances<5))[1])
+    
+    #To count GLY in case of backbone consideration
+    glycines = [res for res in res_for_column if name_for_res[res_for_column[res]]=='GLY']
+    alpha_gly= np.unique(np.where(alpha_distances<4)[1])
+    for r in alpha_gly:
+        if r in glycines:
+            res = name_for_res[res_for_column[r]]
+            dic_residues[res] += 1
+    
+    list_residues_site = []
+    #Keep only the count of each residue in backbone
+    for a in close_residues:
+        res = name_for_res[res_for_column[a]]
+        dic_residues[res] += 1
+    return dic_residues
+    
+
