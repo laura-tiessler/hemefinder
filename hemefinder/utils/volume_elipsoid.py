@@ -34,7 +34,6 @@ def volume_pyKVFinder(
         - list_output: returns a list with the index of the cavities that
         fullfill the requirements
         - it also exports a pdb with these cavities
-
     """
 
     # Define values for calculation
@@ -64,7 +63,7 @@ def volume_pyKVFinder(
             pyKVFinder.export(
                 output_cavity, cavities, surface, vertices, selection=[index]
             )
-            if float(v) > 259 and float(v) < 2000:
+            if float(v) < 2000:
                 num_clus = int(1)
                 labels, xyz = kmeans(pdb, index, num_clus, outputdir)
                 outputfile = os.path.join(
@@ -74,7 +73,7 @@ def volume_pyKVFinder(
                 dic_output[index] = index_kmeans
                 print(f'From PDB: {pdb}; Site: {index}; Volume is {v} A³')
 
-            elif float(v) > 2000:
+            else:
                 num_clus = int(v // 1000)
                 labels, xyz = kmeans(pdb, index, num_clus, outputdir)
                 outputfile = os.path.join(
@@ -83,6 +82,7 @@ def volume_pyKVFinder(
                 index_kmeans = print_clusters(labels, xyz, outputfile)
                 dic_output[index] = index_kmeans
         index += 1
+
     l_dic = len(dic_output)
     message = f'Processed Protein {pdb} and found: {l_dic} '
     message += 'pockets with adequate volume'
@@ -154,6 +154,7 @@ def elipsoid(pdb_id, dic_out, outputdir):
             vw = atoms_inertia(xyz_cav)
             axes, d2, center = moments_of_inertia(vw)
             elen = inertia_ellipsoid_size(d2)
+            print(elen)
 
             if elen[0] > 6.73 and elen[1] > 4.97 and elen[2] > 2.16:
                 message = f'From PDB {pdb_id} - Site number {ind}_{i_k} '
