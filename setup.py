@@ -41,6 +41,7 @@ setup(
     keywords='hemefinder',
     name='hemefinder',
     packages=find_packages(include=['hemefinder', 'hemefinder.*']),
+    package_data={'': ['*.json']},
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/laura-tiessler/hemefinder',

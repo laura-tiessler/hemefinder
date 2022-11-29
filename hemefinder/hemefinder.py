@@ -14,7 +14,7 @@ import numpy as np
 from .utils.data import load_stats
 from .utils.parser import parse_residues, read_pdb
 from .utils.print import create_PDB
-from .utils.scoring import coordination_analysis
+from .utils.scoring import coordination_score
 from .utils.volume_elipsoid import detect_residues, elipsoid, volume_pyKVFinder
 
 
@@ -34,15 +34,15 @@ def hemefinder(
 
     # Detect cavities and analyse possible coordinations
     probes = volume_pyKVFinder(atomic, target, outputdir)
-    scores = coordination_analysis(alphas, betas, stats, probes)
+    scores = coordination_score(alphas, betas, stats, probes)
 
     best_scores = np.argwhere(scores[:, 3] > 0.5)
     new_scores = np.zeros((len(best_scores), 4))
     for idx, idx_score in enumerate(best_scores):
         new_scores[idx, :] = scores[idx_score, :]
-
     basename = Path(target).stem
     outputfile = os.path.join(outputdir, basename)
+    print(outputfile)
     create_PDB(new_scores, outputfile)
 
     # # Make ellipsoid

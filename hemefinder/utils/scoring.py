@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def coordination_analysis(
+def coordination_score(
     alphas: dict,
     betas: dict,
     stats: dict,
@@ -17,14 +17,9 @@ def coordination_analysis(
             alpha_dists = probe - alphas[res]
             beta_dists = probe - betas[res]
             d1, d2, angle = geometry(alpha_dists, beta_dists)
-            res_score, pos_coors = gaussian_scoring(
-                d1, d2, angle, res, stats
-            )
-            possible_coordinators += pos_coors
-            probe_score += res_score
+            probe_score += gaussian_scoring(d1, d2, angle, res, stats)
 
-        score[idx, 3] = probe_score if pos_coors <= 2 else 0.0
-
+        score[idx, 3] = probe_score if probe_score < 1.0 else 1.0
     return score
 
 
@@ -51,10 +46,9 @@ def gaussian_scoring(
             score_1 = alpha_scores[true]
             score_2 = beta_scores[true]
             score_angle = angle_scores[true]
-            fitness += (score_1 + score_2 + score_angle) / 3
-            possible_coordinators += 1
+            fitness += (score_1 + score_2 + score_angle)       
 
-    return fitness, possible_coordinators
+    return fitness * stats[res]['fitness']
 
 
 def geometry(v1: np.array, v2: np.array) -> (np.array, np.array, np.array):

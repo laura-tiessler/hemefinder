@@ -57,10 +57,9 @@ def find_coordinators(
     for coor in possible_coordinators:
         new_coordinators.append(coor[0])
         cummulative += coor[1]
-        if cummulative >= 0.99:
+        if cummulative >= 0.95:
             return new_coordinators
 
-    print(new_coordinators)
     return new_coordinators
 
 
