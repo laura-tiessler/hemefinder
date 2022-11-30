@@ -48,7 +48,6 @@ def gaussian_scoring(
             score_angle = angle_scores[true]
             fitness += (score_1 + score_2 + score_angle) / 3
 
-
     return fitness * stats[res]['fitness']
 
 
