@@ -46,7 +46,8 @@ def gaussian_scoring(
             score_1 = alpha_scores[true]
             score_2 = beta_scores[true]
             score_angle = angle_scores[true]
-            fitness += (score_1 + score_2 + score_angle)       
+            fitness += (score_1 + score_2 + score_angle) / 3
+
 
     return fitness * stats[res]['fitness']
 
@@ -115,7 +116,6 @@ def _normpdf(x: np.array or float, chi: float, nu: float, std: float):
     Returns:
         result (float): PDF value.
     """
-
     var = std ** 2
     num = np.exp(- (x - nu) ** 2 / (2 * var))
     return chi * num
