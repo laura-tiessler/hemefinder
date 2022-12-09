@@ -147,8 +147,9 @@ def print_file(centers, motif, propose_mutations_to, mutations, name_for_res, pd
 
 
 def create_PDB(
-        scores: np.array,
+        dic_results: dict,
         outputfile: str,
+        target: str,
         **kwargs
     ) -> None:
         """
@@ -175,32 +176,37 @@ def create_PDB(
                 be (len(cluster_centers), 4).
             molecule (protein): Protein object.
         """
-        outputfile = f'{outputfile}_hemefinder.pdb'
+        outputfile = f'{outputfile}_hemefinder_{target}.pdb'
         with open(outputfile, "w") as fo:
             num_at = 0
             num_res = 0
-            for entry in scores:
-
+            for res, result in dic_results.items():
                 num_at += 1
                 num_res = 1
                 ch = "A"
                 prb_str = ""
+                for entry in result[target]:
+                    for idx in range(3):
+                        number = str(round(float(result[target][idx]), 3))
+                        prb_center = "{:.8s}".format(number)
+                        if len(prb_center) < 8:
+                            prb_center = " "*(8-len(prb_center)) + prb_center
+                            prb_str += prb_center
+                        else:
+                            prb_str += prb_center
 
-                for idx in range(3):
-                    number = str(round(float(entry[idx]), 3))
-                    prb_center = "{:.8s}".format(number)
-                    if len(prb_center) < 8:
-                        prb_center = " "*(8-len(prb_center)) + prb_center
-                        prb_str += prb_center
-                    else:
-                        prb_str += prb_center
+                    atom = "HE"
+                    blank = " "*(7-len(str(num_at)))
+                    fo.write("ATOM" + blank + "%s  %s  SLN %s" %
+                            (num_at, atom, ch))
+                    blank = " "*(3-len(str(num_res)))
+                    if target == 'centroid':
+                        score = str(round(result['score'], 1))
+                    elif target == 'elipsoid':
+                        score = str(round(result['score_res'], 1))
+                    elif target == 'probes':
+                        score = 1.00
+                    score = score if len(score) == 5 else score + '0'
+                    fo.write(blank + "%s     %s  1.00 %s          %s\n" %
+                            (num_res, prb_str, score, atom))
 
-                atom = "HE"
-                blank = " "*(7-len(str(num_at)))
-                fo.write("ATOM" + blank + "%s  %s  SLN %s" %
-                         (num_at, atom, ch))
-                blank = " "*(3-len(str(num_res)))
-                score = str(round(entry[3], 2))
-                score = score if len(score) == 4 else score + '0'
-                fo.write(blank + "%s     %s  1.00  %s          %s\n" %
-                         (num_res, prb_str, score, atom))

@@ -9,6 +9,13 @@ def load_stats():
         stats = json.load(json_reader)
     return stats
 
+def load_stats_res():
+    current_dir = os.path.dirname(__file__)
+    stats_path = os.path.join(current_dir, 'stats', 'residue_stats.json')
+    with open(stats_path) as json_reader:
+        stats = json.load(json_reader)
+    return stats
+
 
 DIST_PROBE_ALPHA = {
     'CYS': (3.702, 4.561),

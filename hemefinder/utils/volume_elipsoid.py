@@ -39,8 +39,8 @@ def volume_pyKVFinder(
 
     # Define values for calculation
     step = 0.6
-    probe_in = 1.0
-    probe_out = 7.0
+    probe_in = 1.5
+    probe_out = 10.0
     removal_distance = 2.5
     volume_cutoff = 5.0
     surface = 'SES'
@@ -68,6 +68,12 @@ def atoms_inertia(xyz):
     weights = [1 for a in range(len(xyz))]  # fer numpy array de 1
     return([(xyz, weights)])
 
+
+def detect_ellipsoid(probes, center):
+    distances = np.sqrt((np.square(probes[:,np.newaxis]-center).sum(axis=2)))
+    close = np.where(distances<10)[0]
+    sphere = probes[close]
+    return sphere
 
 def moments_of_inertia(vw):
     i = zeros((3, 3), float)
@@ -103,7 +109,7 @@ def inertia_ellipsoid_size(d2, shell=False):
     return elen
 
 
-def elipsoid(pdb_id, dic_out, outputdir):
+def elipsoid(sphere):
     """
     This function calculates the elipsoid size of the cavity.
 
@@ -117,48 +123,22 @@ def elipsoid(pdb_id, dic_out, outputdir):
         fullfill the requirements
         - it also exports a pdb with these cavities
     """
-    cavities = []
-    list_elip = []
-    print('\n\n')
-
-    for ind, ind_k in dic_out.items():
-        for i_k in ind_k:
-            file_cav, xyz_cav = load_kmeans(pdb_id, ind, i_k, outputdir)
-            # file_cav, xyz_cav, traj_cav = load_cav(pdb_id,f,outputdir)
-            vw = atoms_inertia(xyz_cav)
-            axes, d2, center = moments_of_inertia(vw)
-            elen = inertia_ellipsoid_size(d2)
-            print(elen)
-
-            if elen[0] > 6.73 and elen[1] > 4.97 and elen[2] > 2.16:
-                message = f'From PDB {pdb_id} - Site number {ind}_{i_k} '
-                message += 'the elipsoid would fit'
-                print(message)
-                list_elip.append(ind)
-                cavities.append(xyz_cav)
-    print()
-    return list_elip, cavities
+    vw = atoms_inertia(sphere)
+    axes, d2, center = moments_of_inertia(vw)
+    elen = inertia_ellipsoid_size(d2)
+    if elen[0] > 6.73 and elen[1] > 4.97 and elen[2] > 2.16:
+        return True
+    else:
+        return False
 
 
-def detect_residues(xyz, alphas, betas, res_for_column, name_for_res):
+def detect_residues(points, alphas, betas, residue_names):
     dic_residues = {}
-    alpha_distances = np.sqrt((np.square(xyz[:,np.newaxis]-alphas).sum(axis=2)))
-    beta_distances = np.sqrt((np.square(xyz[:,np.newaxis]-betas).sum(axis=2)))
+    alpha_distances = np.sqrt((np.square(points[:,np.newaxis]-alphas).sum(axis=2)))
+    beta_distances = np.sqrt((np.square(points[:,np.newaxis]-betas).sum(axis=2)))
     close_residues = np.unique(np.where((alpha_distances<6.5)&(beta_distances<5))[1])
-    
-    #To count GLY in case of backbone consideration
-    glycines = [res for res in res_for_column if name_for_res[res_for_column[res]]=='GLY']
-    alpha_gly= np.unique(np.where(alpha_distances<4)[1])
-    for r in alpha_gly:
-        if r in glycines:
-            res = name_for_res[res_for_column[r]]
-            dic_residues[res] += 1
-    
-    list_residues_site = []
-    #Keep only the count of each residue in backbone
-    for a in close_residues:
-        res = name_for_res[res_for_column[a]]
-        dic_residues[res] += 1
-    return dic_residues
+    list_residues_site = residue_names[close_residues]
+
+    return list_residues_site
     
 

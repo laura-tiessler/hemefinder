@@ -1,3 +1,4 @@
+from http.server import BaseHTTPRequestHandler
 import os
 import sys
 import urllib.request
@@ -62,31 +63,47 @@ def find_coordinators(
 
     return new_coordinators
 
-
+                
 def parse_residues(
     molecule: np.array,
     coordinators: list,
     stats: dict
-) -> (dict, dict):
-    coordinators = find_coordinators(molecule, coordinators, stats)
+) -> (dict,dict,dict):
+    #coordinators = find_coordinators(molecule, coordinators, stats)
 
     alphas = {residue: [] for residue in coordinators}
-    betas = {residue: [] for residue in coordinators}
-
+    betas = {residue: []  for residue in coordinators}
+    res_number_coordinators = {residue: [] for residue in coordinators}
+    all_alphas = []
+    all_betas = []
+    residues_names = []
     for atom in molecule:
         res_name = atom[2]
+        res_num = int(atom[0])
+        res_chain = atom[1]
+        res_id = str(str(res_num) + '_' + res_chain)
+        atom_name = atom[3]
+        coors = np.array(atom[4:7], dtype=float)
+
+        
+        #For residue calculation
+        if atom_name == 'CA':
+            all_alphas.append(coors)
+            residues_names.append(res_name)
+            if res_name == 'GLY':
+                all_betas.append(np.array([0,0,0]))
+        if atom_name == 'CB':
+            all_betas.append(coors)
 
         if res_name not in coordinators:
             continue
 
-        atom_name = atom[3]
-        coors = np.array(atom[4:7], dtype=float)
-
         if atom_name == 'CA':
             alphas[res_name].append(coors)
+            res_number_coordinators[res_name].append(res_id)
         elif atom_name == 'CB':
             betas[res_name].append(coors)
-
+                
     alphas = {
         residue: np.array(alphas[residue]).reshape(len(alphas[residue]), 3)
         for residue in coordinators
@@ -95,7 +112,11 @@ def parse_residues(
         residue: np.array(betas[residue]).reshape(len(betas[residue]), 3)
         for residue in coordinators
     }
-    return alphas, betas
+    all_alphas = np.array(all_alphas)
+    all_betas = np.array(all_betas)
+    residues_names = np.array(residues_names)
+
+    return alphas, betas, res_number_coordinators, all_alphas, all_betas, residues_names
 
 
 def download_pdb(file, datadir):
