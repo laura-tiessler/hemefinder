@@ -146,7 +146,7 @@ def print_file(centers, motif, propose_mutations_to, mutations, name_for_res, pd
     f.close()
 
 
-def create_PDB(
+def create_PDB_L(
         dic_results: dict,
         outputfile: str,
         target: str,
@@ -209,4 +209,89 @@ def create_PDB(
                     score = score if len(score) == 5 else score + '0'
                     fo.write(blank + "%s     %s  1.00 %s          %s\n" %
                             (num_res, prb_str, score, atom))
+
+
+def create_PDB(
+        dic_results: dict,
+        name: str,
+    ):
+        ind = 0
+        for key, value in dic_results.items():
+            ind+=1
+            outputfile = f'{name}_hemefinder_{ind}.pdb'
+            with open(outputfile, "w") as fo:
+                num_at = 1
+                num_res = 1
+                ch = "A"
+                prb_str = ""
+
+                #For centroid
+                for idx in range(3):
+                    number = str(round(float(value['centroid'][idx]), 3))
+                    prb_center = "{:.8s}".format(number)
+                    if len(prb_center) < 8:
+                        prb_center = " "*(8-len(prb_center)) + prb_center
+                        prb_str += prb_center
+                    else:
+                        prb_str += prb_center
+                atom = "HE"
+                blank = " "*(7-len(str(num_at)))
+                fo.write("ATOM" + blank + "%s  %s  SLN %s" %
+                        (num_at, atom, ch))
+                blank = " "*(3-len(str(num_res)))
+                score = str(round(value['score'], 1))
+                score = score if len(score) == 5 else score + '0'
+                fo.write(blank + "%s     %s  1.00 %s          %s\n" %
+                        (num_res, prb_str, score, atom))
+                
+                prb_str = ''
+
+                #For probes
+                num_res += 1
+                for probe in value['probes']:
+                    num_at += 1
+                    for idx in range(3):
+                        number = str(round(float(probe[idx]), 3))
+                        prb_center = "{:.8s}".format(number)
+                        if len(prb_center) < 8:
+                            prb_center = " "*(8-len(prb_center)) + prb_center
+                            prb_str += prb_center
+                        else:
+                            prb_str += prb_center
+                    atom = "NE"
+                    blank = " "*(7-len(str(num_at)))
+                    fo.write("ATOM" + blank + "%s  %s  SLN %s" %
+                            (num_at, atom, ch))
+                    blank = " "*(3-len(str(num_res)))
+                    score = '1.000'
+                    fo.write(blank + "%s     %s  1.00 %s          %s\n" %
+                            (num_res, prb_str, score, atom))
+                    prb_str = ''
+
+                prb_str = ''
+
+                #For elipsoid
+                num_res += 1
+                for eli in value['elipsoid']:
+                    num_at += 1
+                    for idx in range(3):
+                        number = str(round(float(eli[idx]), 3))
+                        prb_center = "{:.8s}".format(number)
+                        if len(prb_center) < 8:
+                            prb_center = " "*(8-len(prb_center)) + prb_center
+                            prb_str += prb_center
+                        else:
+                            prb_str += prb_center
+                    atom = "AR"
+                    blank = " "*(7-len(str(num_at)))
+                    fo.write("ATOM" + blank + "%s  %s  SLN %s" %
+                            (num_at, atom, ch))
+                    blank = " "*(3-len(str(num_res)))
+                    score = str(round(value['score_res'], 2 ))
+                    score = score if len(score) == 5 else score + '0'
+                    fo.write(blank + "%s     %s  1.00 %s          %s\n" %
+                            (num_res, prb_str, score, atom))
+                    prb_str = ''
+            fo.close()
+
 

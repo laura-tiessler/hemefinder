@@ -67,8 +67,7 @@ def find_coordinators(
 def parse_residues(
     molecule: np.array,
     coordinators: list,
-    stats: dict
-) -> (dict,dict,dict):
+    stats: dict):
     #coordinators = find_coordinators(molecule, coordinators, stats)
 
     alphas = {residue: [] for residue in coordinators}
@@ -157,7 +156,19 @@ def load_cav(cavity_path):
     vdw = pyKVFinder.read_vdw(data_path)
     atomic = pyKVFinder.read_pdb(cavity_path, vdw)
     xyz_cav = np.array(atomic[:, [4, 5, 6]], dtype=float)
-    return xyz_cav
+    xyz_HA = np.array([a[4:7] for a in atomic if a[3]=='HA'], dtype=float )
+    return xyz_cav, xyz_HA
+
+# def load_cav(cavity_path):
+#     """
+
+#     """
+#     current_dir = os.path.dirname(__file__)
+#     data_path = os.path.join(current_dir, 'vdw_mod.dat')
+#     vdw = pyKVFinder.read_vdw(data_path)
+#     atomic = pyKVFinder.read_pdb(cavity_path, vdw)
+#     xyz_HA = np.array([a[4:7] for a in atomic if a[3]=='HA'], dtype=float )
+#     return  xyz_HA
 
 
 def _parse_molecule(lines, file_extension):

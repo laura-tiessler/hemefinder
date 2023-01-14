@@ -1,5 +1,6 @@
 from ossaudiodev import SOUND_MIXER_SYNTH
 import numpy as np
+from .additional import grid
 
 chemical_nature = {
     'aromatic': {'PHE', 'TYR', 'TRP'},
@@ -15,12 +16,11 @@ def coordination_score(
     betas: dict,
     stats: dict,
     probes: np.array,
-    res_number_coordinators: dict
-) -> np.array:
+    res_number_coordinators: dict):
     results_score = []
-    for probe in probes:
+    for x, probe in enumerate(probes):
         for res in alphas.keys():
-            alpha_dists = alphas[res]- probe
+            alpha_dists = alphas[res] - probe
             beta_dists =  betas[res] - probe
             d1, d2, angle = geometry(alpha_dists, beta_dists)
             possible_coordinators, scores = gaussian_scoring(d1, d2, angle, res, stats, res_number_coordinators)
@@ -64,7 +64,7 @@ def gaussian_scoring(
     angle_scores = bimodal(angle, *stats[res]['PAB_angle'])
  
     possible_coordinators = []
-    ind_coordinators = np.where((alpha_scores>0.01)&(beta_scores>0.01)&(angle_scores>0.01))[0]
+    ind_coordinators = np.where((alpha_scores>0.05)&(beta_scores>0.05)&(angle_scores>0.05))[0]
     if len(ind_coordinators)==0:
         fitness = 0
     else:
@@ -76,10 +76,10 @@ def gaussian_scoring(
             score_total = (score_ca + score_cb + score_angle) / 3
             possible_coordinators.append(res_number_coordinators[res][ind])
             fitness += score_total
-    return possible_coordinators, fitness
+    return possible_coordinators, fitness*stats[res]['fitness']
 
 
-def geometry(v1: np.array, v2: np.array) -> (np.array, np.array, np.array):
+def geometry(v1: np.array, v2: np.array):
     v1_distances = np.linalg.norm(v1, axis=1)
     v2_distances = np.linalg.norm(v2, axis=1)
     v1_v2_distances = np.linalg.norm(v1 - v2, axis=1)
@@ -95,8 +95,7 @@ def geometry(v1: np.array, v2: np.array) -> (np.array, np.array, np.array):
     return v1_distances, v2_distances, v1v2_angles
 
 
-def clustering(scores):
-    dic_coordinating = {}
+def clustering(scores, dic_coordinating):
     for coord, residues, score in scores:
         if score ==0:
             continue
@@ -119,6 +118,17 @@ def centroid(coord_residues:dict):
         centroid = [sum_x/lenght_array, sum_y/lenght_array, sum_z/lenght_array]
         coord_residues[res]['centroid'] = centroid
     return coord_residues    
+
+def new_probes(coord_residues_centroid, alphas, betas, stats, res_number_coordinators):
+    for res, values in coord_residues_centroid.items():
+        centroid=np.array(values['centroid'])
+        new_probes = grid(centroid, 3, 0.6)
+        if 'new_scores' not in locals():
+            new_scores = coordination_score(alphas, betas, stats, new_probes, res_number_coordinators)
+        else:
+            new_scores.extend(coordination_score(alphas, betas, stats, new_probes, res_number_coordinators))
+    coord_residues_new = clustering(new_scores, coord_residues_centroid)
+    return coord_residues_new
 
 
 def bimodal(
@@ -172,3 +182,5 @@ def _normpdf(x: np.array or float, chi: float, nu: float, std: float):
     var = std ** 2
     num = np.exp(- (x - nu) ** 2 / (2 * var))
     return chi * num
+
+
