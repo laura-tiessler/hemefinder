@@ -16,55 +16,40 @@ def coordination_score(
     betas: dict,
     stats: dict,
     probes: np.array,
-    res_number_coordinators: dict):
+    res_name_num: np.array):
     results_score = []
     for x, probe in enumerate(probes):
-        for res in alphas.keys():
-            alpha_dists = alphas[res] - probe
-            beta_dists =  betas[res] - probe
-            d1, d2, angle = geometry(alpha_dists, beta_dists)
-            possible_coordinators, scores = gaussian_scoring(d1, d2, angle, res, stats, res_number_coordinators)
-            results_score.append([probe, possible_coordinators, scores])
+        alpha_dists = alphas - probe
+        beta_dists =  betas - probe
+        d1, d2, angle = geometry(alpha_dists, beta_dists)
+        possible_coordinators, scores = gaussian_scoring(d1, d2, angle, stats, res_name_num)
+        results_score.append([probe, possible_coordinators, scores])
     return results_score
 
-def residue_scoring(residues, stats_res):
-    score = 0
-    prop_residues = analyse_residues(residues)
-    for group, value in prop_residues.items():
-        score += bimodal(value, *stats_res[group])
-    return score
-
-def analyse_residues(residues):
-    site = {
-            'aromatic': 0,
-            'polar':  0,
-            'positive': 0,
-            'negative': 0,
-            'hidrophobic': 0,
-            'large_chain': 0
-        }
-    total = len(residues)
-    for res in residues:
-        for group, included_residues in chemical_nature.items():
-            if res in included_residues:
-                site[group] += round(1/total, 2)
-    return site
 
 def gaussian_scoring(
     d1: np.array,
     d2: np.array,
     angle: np.array,
-    res: str,
     stats: dict,
-    res_number_coordinators: dict
+    res_name_num: dict
 ) -> float:
 
-    alpha_scores = bimodal(d1, *stats[res]['dist_alpha'])
-    beta_scores = bimodal(d2, *stats[res]['dist_beta'])
-    angle_scores = bimodal(angle, *stats[res]['PAB_angle'])
- 
+    alpha_scores = []
+    beta_scores = []
+    angle_scores = [] 
+    
+    for i, res in enumerate(res_name_num[:,0]):
+        alpha_scores.append(bimodal(d1[i], *stats[res]['dist_alpha']))
+        beta_scores.append(bimodal(d2[i], *stats[res]['dist_beta']))
+        angle_scores.append(bimodal(angle[i], *stats[res]['PAB_angle']))
+
+    alpha_scores = np.array(alpha_scores)
+    beta_scores = np.array(beta_scores)
+    angle_scores = np.array(angle_scores)
+
     possible_coordinators = []
-    ind_coordinators = np.where((alpha_scores>0.05)&(beta_scores>0.05)&(angle_scores>0.05))[0]
+    ind_coordinators = np.where((alpha_scores>0.001)&(beta_scores>0.001)&(angle_scores>0.01))[0]
     if len(ind_coordinators)==0:
         fitness = 0
     else:
@@ -74,10 +59,136 @@ def gaussian_scoring(
             score_cb = beta_scores[ind]
             score_angle = angle_scores[ind]
             score_total = (score_ca + score_cb + score_angle) / 3
-            possible_coordinators.append(res_number_coordinators[res][ind])
-            fitness += score_total
-    return possible_coordinators, fitness*stats[res]['fitness']
+            possible_coordinators.append(res_name_num[ind][1])
+            fitness += score_total*stats[res_name_num[ind][0]]['fitness']
+    return possible_coordinators, fitness
 
+
+def clustering(scores, dic_coordinating):
+    for coord, residues, score in scores:
+        if score ==0 or len(residues) == 0:
+            continue
+        else:
+            residues_t = tuple(residues)
+            if residues_t not in dic_coordinating:
+                dic_coordinating[residues_t] = {'probes': [coord], 'score': score}
+            else:
+                dic_coordinating[residues_t]['probes'].append(coord)
+                dic_coordinating[residues_t]['score'] += score
+    return dic_coordinating
+
+
+def coordination_score_mutation(
+    alphas: dict,
+    betas: dict,
+    stats: dict,
+    probes: np.array,
+    res_name_num: dict,
+    mutations: str,
+    residues_ids:np.array):
+    results_score = []
+    for x, probe in enumerate(probes):
+        alpha_dists = alphas - probe
+        beta_dists =  betas - probe
+        d1, d2, angle = geometry(alpha_dists, beta_dists)
+        score_mut = gaussian_scoring_mutation(d1, d2, angle, stats, res_name_num, mutations, residues_ids)
+        results_score.append([probe, score_mut])
+    return results_score
+
+def gaussian_scoring_mutation_bad(
+    d1: np.array,
+    d2: np.array,
+    angle: np.array,
+    stats: dict,
+    res_name_num: dict,
+    mutations: dict
+) -> float:
+    dic_mutations_scores = dict.fromkeys(mutations)
+    
+    print(dic_mutations_scores)
+
+    for res in mutations:
+        alpha_scores = bimodal(d1, *stats[res]['dist_alpha'])
+        beta_scores= bimodal(d2, *stats[res]['dist_beta'])
+        angle_scores = bimodal(angle, *stats[res]['PAB_angle'])
+
+        ind_coordinators = np.where((alpha_scores>0.01)&(beta_scores>0.01)&(angle_scores>0.01))[0]
+        possible_coordinators = []
+
+        fitness = 0
+        for ind in ind_coordinators:
+            score_ca = alpha_scores[ind]
+            score_cb = beta_scores[ind]
+            score_angle = angle_scores[ind]
+            score_total = (score_ca + score_cb + score_angle) / 3
+            possible_coordinators.append(res_name_num[ind][1])
+            fitness += score_total*stats[res]['fitness']
+        dic_mutations_scores[res] = [possible_coordinators, fitness]
+
+    print(dic_mutations_scores)
+    return dic_mutations_scores
+
+def gaussian_scoring_mutation(
+    d1: np.array,
+    d2: np.array,
+    angle: np.array,
+    stats: dict,
+    res_name_num: dict,
+    mutations: list,
+    residues_ids: np.array
+) -> float:
+
+    dic_mutations_scores = dict.fromkeys(mutations)
+
+    for res in mutations:
+        alpha_scores = []
+        beta_scores = []
+        angle_scores = [] 
+
+        for i in range(len(d1)):
+            alpha_scores.append(bimodal(d1[i], *stats[res]['dist_alpha']))
+            beta_scores.append(bimodal(d2[i], *stats[res]['dist_beta']))
+            angle_scores.append(bimodal(angle[i], *stats[res]['PAB_angle']))
+
+        alpha_scores = np.array(alpha_scores)
+        beta_scores = np.array(beta_scores)
+        angle_scores = np.array(angle_scores)
+
+        possible_coordinators = []
+        ind_coordinators = np.where((alpha_scores>0.001)&(beta_scores>0.001)&(angle_scores>0.01))[0]
+        if len(ind_coordinators)==0:
+            fitness = 0
+        else:
+            fitness = 0
+            for ind in ind_coordinators:
+                score_ca = alpha_scores[ind]
+                score_cb = beta_scores[ind]
+                score_angle = angle_scores[ind]
+                score_total = (score_ca + score_cb + score_angle) / 3
+                possible_coordinators.append(residues_ids[ind])
+                fitness += score_total*stats[res]['fitness']
+        dic_mutations_scores[res] = [possible_coordinators, fitness]
+    return  dic_mutations_scores
+
+
+def clustering_mutation(scores, dic_coordinating, mutations):
+
+    for coord, score in scores:
+        for res_mut, coord_fit in score.items():
+            item = {res:0 for res in mutations}
+            if len(coord_fit[0]) ==0:
+                continue
+            else:
+                residues_t = tuple(coord_fit[0])
+                if residues_t not in dic_coordinating:
+                    dic_coordinating[residues_t] = {'probes': [coord], 'score': item}
+                    dic_coordinating[residues_t]['score'][res_mut] += coord_fit[1]
+
+                else:
+                    dic_coordinating[residues_t]['probes'].append(coord)
+                    dic_coordinating[residues_t]['score'][res_mut] += coord_fit[1]
+
+    return dic_coordinating
 
 def geometry(v1: np.array, v2: np.array):
     v1_distances = np.linalg.norm(v1, axis=1)
@@ -93,43 +204,6 @@ def geometry(v1: np.array, v2: np.array):
         (2 * v1_distances * v1_v2_distances)
     )
     return v1_distances, v2_distances, v1v2_angles
-
-
-def clustering(scores, dic_coordinating):
-    for coord, residues, score in scores:
-        if score ==0:
-            continue
-        else:
-            residues_t = tuple(residues)
-            if residues_t not in dic_coordinating:
-                dic_coordinating[residues_t] = {'probes': [coord], 'score': score}
-            else:
-                dic_coordinating[residues_t]['probes'].append(coord)
-                dic_coordinating[residues_t]['score'] += score
-    return dic_coordinating
-
-def centroid(coord_residues:dict):
-    for res, probes_score in coord_residues.items():
-        probes = np.array(probes_score['probes']).reshape(len(probes_score['probes']),3)
-        lenght_array = len(probes)
-        sum_x = np.sum(probes[:,0])
-        sum_y = np.sum(probes[:,1])
-        sum_z = np.sum(probes[:,2])
-        centroid = [sum_x/lenght_array, sum_y/lenght_array, sum_z/lenght_array]
-        coord_residues[res]['centroid'] = centroid
-    return coord_residues    
-
-def new_probes(coord_residues_centroid, alphas, betas, stats, res_number_coordinators):
-    for res, values in coord_residues_centroid.items():
-        centroid=np.array(values['centroid'])
-        new_probes = grid(centroid, 3, 0.6)
-        if 'new_scores' not in locals():
-            new_scores = coordination_score(alphas, betas, stats, new_probes, res_number_coordinators)
-        else:
-            new_scores.extend(coordination_score(alphas, betas, stats, new_probes, res_number_coordinators))
-    coord_residues_new = clustering(new_scores, coord_residues_centroid)
-    return coord_residues_new
-
 
 def bimodal(
     x: np.array,
@@ -183,4 +257,48 @@ def _normpdf(x: np.array or float, chi: float, nu: float, std: float):
     num = np.exp(- (x - nu) ** 2 / (2 * var))
     return chi * num
 
+def centroid(coord_residues):
+    for res, probes_score in coord_residues.items():
+        probes = np.array(probes_score['probes']).reshape(len(probes_score['probes']),3)
+        lenght_array = len(probes)
+        sum_x = np.sum(probes[:,0])
+        sum_y = np.sum(probes[:,1])
+        sum_z = np.sum(probes[:,2])
+        centroid = [sum_x/lenght_array, sum_y/lenght_array, sum_z/lenght_array]
+        coord_residues[res]['centroid'] = centroid
+    return coord_residues    
+
+def new_probes(coord_residues_centroid, alphas, betas, stats, res_number_coordinators):
+    for res, values in coord_residues_centroid.items():
+        centroid=np.array(values['centroid'])
+        new_probes = grid(centroid, 3, 0.6)
+        if 'new_scores' not in locals():
+            new_scores = coordination_score(alphas, betas, stats, new_probes, res_number_coordinators)
+        else:
+            new_scores.extend(coordination_score(alphas, betas, stats, new_probes, res_number_coordinators))
+    coord_residues_new = clustering(new_scores, coord_residues_centroid)
+    return coord_residues_new
+
+def residue_scoring(residues, stats_res):
+    score_res = 0
+    prop_residues = analyse_residues(residues)
+    for group, value in prop_residues.items():
+        score_res += bimodal(value, *stats_res[group])
+    return score_res
+
+def analyse_residues(residues):
+    site = {
+            'aromatic': 0,
+            'polar':  0,
+            'positive': 0,
+            'negative': 0,
+            'hidrophobic': 0,
+            'large_chain': 0
+        }
+    total = len(residues)
+    for res in residues:
+        for group, included_residues in chemical_nature.items():
+            if res in included_residues:
+                site[group] += round(1/total, 2)
+    return site
 

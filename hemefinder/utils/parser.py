@@ -70,12 +70,13 @@ def parse_residues(
     stats: dict):
     #coordinators = find_coordinators(molecule, coordinators, stats)
 
-    alphas = {residue: [] for residue in coordinators}
-    betas = {residue: []  for residue in coordinators}
-    res_number_coordinators = {residue: [] for residue in coordinators}
+    alphas_coord = []
+    betas_coord = []
+    res_name_number_coord = []
     all_alphas = []
     all_betas = []
     residues_names = []
+    residues_ids = []
     for atom in molecule:
         res_name = atom[2]
         res_num = int(atom[0])
@@ -89,6 +90,7 @@ def parse_residues(
         if atom_name == 'CA':
             all_alphas.append(coors)
             residues_names.append(res_name)
+            residues_ids.append(res_id)
             if res_name == 'GLY':
                 all_betas.append(np.array([0,0,0]))
         if atom_name == 'CB':
@@ -98,24 +100,19 @@ def parse_residues(
             continue
 
         if atom_name == 'CA':
-            alphas[res_name].append(coors)
-            res_number_coordinators[res_name].append(res_id)
+            alphas_coord.append(coors)
+            res_name_number_coord.append([res_name,res_id])
         elif atom_name == 'CB':
-            betas[res_name].append(coors)
+           betas_coord.append(coors)
                 
-    alphas = {
-        residue: np.array(alphas[residue]).reshape(len(alphas[residue]), 3)
-        for residue in coordinators
-    }
-    betas = {
-        residue: np.array(betas[residue]).reshape(len(betas[residue]), 3)
-        for residue in coordinators
-    }
+    alphas_coord = np.array(alphas_coord)
+    betas_coord = np.array(betas_coord)
+    res_name_number_coord = np.array(res_name_number_coord)
     all_alphas = np.array(all_alphas)
     all_betas = np.array(all_betas)
     residues_names = np.array(residues_names)
-
-    return alphas, betas, res_number_coordinators, all_alphas, all_betas, residues_names
+    residues_ids= np.array(residues_ids)
+    return alphas_coord, betas_coord,res_name_number_coord, all_alphas, all_betas, residues_names, residues_ids
 
 
 def download_pdb(file, datadir):
