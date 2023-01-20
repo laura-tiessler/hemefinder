@@ -1,3 +1,4 @@
+from math import nan
 from ossaudiodev import SOUND_MIXER_SYNTH
 import numpy as np
 from .additional import grid
@@ -71,10 +72,11 @@ def clustering(scores, dic_coordinating):
         else:
             residues_t = tuple(residues)
             if residues_t not in dic_coordinating:
-                dic_coordinating[residues_t] = {'probes': [coord], 'score': score}
+                dic_coordinating[residues_t] = {'probes': [coord], 'score': score, 'all_scores':[score]}
             else:
                 dic_coordinating[residues_t]['probes'].append(coord)
                 dic_coordinating[residues_t]['score'] += score
+                dic_coordinating[residues_t]['all_scores'].append(score)
     return dic_coordinating
 
 
@@ -257,14 +259,27 @@ def _normpdf(x: np.array or float, chi: float, nu: float, std: float):
     num = np.exp(- (x - nu) ** 2 / (2 * var))
     return chi * num
 
+
+def normalize(input_list):
+    max_p = max(input_list)
+    min_p = min(input_list)
+    diff = max_p-min_p
+    normalized = [float((x-min_p)/diff) for x in input_list]
+    nor = np.array(normalized)
+    return nor
+
 def centroid(coord_residues):
     for res, probes_score in coord_residues.items():
         probes = np.array(probes_score['probes']).reshape(len(probes_score['probes']),3)
-        lenght_array = len(probes)
-        sum_x = np.sum(probes[:,0])
-        sum_y = np.sum(probes[:,1])
-        sum_z = np.sum(probes[:,2])
-        centroid = [sum_x/lenght_array, sum_y/lenght_array, sum_z/lenght_array]
+        score_probes = probes_score['all_scores']
+        sum_scores = sum(score_probes)
+        x = np.array([ x*score_probes[i] for i,x in enumerate(probes[:,0])])
+        y = np.array([ x*score_probes[i] for i,x in enumerate(probes[:,1])])
+        z = np.array([ x*score_probes[i] for i,x in enumerate(probes[:,2])])
+        sum_x = np.sum(x)
+        sum_y = np.sum(y)
+        sum_z = np.sum(z)
+        centroid = [sum_x/sum_scores, sum_y/sum_scores, sum_z/sum_scores]
         coord_residues[res]['centroid'] = centroid
     return coord_residues    
 

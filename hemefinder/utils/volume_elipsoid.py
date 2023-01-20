@@ -12,7 +12,7 @@ from .print import print_clusters
 from .additional import grid
 
 
-def detect_hole(cav_HA, cav):
+def detect_hole(cav_HA, cav): #Quitar la normalización
     dist_matrix = np.sqrt((np.square(cav_HA[np.newaxis,:]-cav_HA[:,np.newaxis]).sum(axis=2)))
     density_points = []
     for a in dist_matrix:

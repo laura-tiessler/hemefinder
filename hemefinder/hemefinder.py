@@ -51,7 +51,9 @@ def hemefinder(
             coord_residues_centroid = centroid(coord_residues)
             
             for k, v in coord_residues_centroid.items():
+                print(v['centroid'])
                 sphere = detect_ellipsoid(probe, v['centroid'])
+                print(sphere)
                 yes_no = elipsoid(sphere)
                 if yes_no == True:
                     final_results[k] = v
@@ -99,10 +101,10 @@ def hemefinder(
             num += 1
         create_PDB(sorted_results, outputfile)
 
-    else:
-        for k, v in final_dic.items():
-            if v['score']['HIS'] > 10:
-                print(k, v['score'])
+    # else:
+    #     for k, v in final_dic.items():
+    #         if v['score']['HIS'] > 10:
+    #             print(k, v['score'])
 
         
     end = time.time()
