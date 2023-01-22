@@ -51,9 +51,7 @@ def hemefinder(
             coord_residues_centroid = centroid(coord_residues)
             
             for k, v in coord_residues_centroid.items():
-                print(v['centroid'])
                 sphere = detect_ellipsoid(probe, v['centroid'])
-                print(sphere)
                 yes_no = elipsoid(sphere)
                 if yes_no == True:
                     final_results[k] = v

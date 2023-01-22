@@ -54,29 +54,58 @@ def gaussian_scoring(
     if len(ind_coordinators)==0:
         fitness = 0
     else:
-        fitness = 0
+        fitness = []
         for ind in ind_coordinators:
             score_ca = alpha_scores[ind]
             score_cb = beta_scores[ind]
             score_angle = angle_scores[ind]
             score_total = (score_ca + score_cb + score_angle) / 3
             possible_coordinators.append(res_name_num[ind][1])
-            fitness += score_total*stats[res_name_num[ind][0]]['fitness']
+            fitness.append(score_total*stats[res_name_num[ind][0]]['fitness'])
+
     return possible_coordinators, fitness
 
 
 def clustering(scores, dic_coordinating):
     for coord, residues, score in scores:
-        if score ==0 or len(residues) == 0:
+        if len(residues) == 0:
             continue
         else:
             residues_t = tuple(residues)
+            score_sum = np.sum(np.array(score))
             if residues_t not in dic_coordinating:
-                dic_coordinating[residues_t] = {'probes': [coord], 'score': score, 'all_scores':[score]}
+                dic_coordinating[residues_t] = {'probes': [coord], 'score': score_sum, 'all_scores':[score_sum]}
+
             else:
                 dic_coordinating[residues_t]['probes'].append(coord)
-                dic_coordinating[residues_t]['score'] += score
-                dic_coordinating[residues_t]['all_scores'].append(score)
+                dic_coordinating[residues_t]['score'] += score_sum
+                dic_coordinating[residues_t]['all_scores'].append(score_sum)
+            if len(residues)>1:
+                for i,res in enumerate(residues):
+                    res_t = tuple([res])
+                    score_ind = score[i]
+                    if res_t not in dic_coordinating:
+                        dic_coordinating[res_t] = {'probes': [coord], 'score': score_ind, 'all_scores':[score_ind]}
+
+                    else:
+                        dic_coordinating[res_t]['probes'].append(coord)
+                        dic_coordinating[res_t]['score'] += score_ind
+                        dic_coordinating[res_t]['all_scores'].append(score_ind)
+            if len(residues)>2:
+                possibilities = [residues[0:2], residues[1:3]]
+                for i,resis in enumerate(possibilities):
+                    resis_t = tuple(resis)
+                    score_d = np.sum(np.array(score[i:i+2]))
+                    if resis_t not in dic_coordinating:
+                        dic_coordinating[resis_t] = {'probes': [coord], 'score': score_d, 'all_scores':[score_d]}
+
+                    else:
+                        dic_coordinating[resis_t]['probes'].append(coord)
+                        dic_coordinating[resis_t]['score'] += score_d
+                        dic_coordinating[resis_t]['all_scores'].append(score_d)
+
+
+
     return dic_coordinating
 
 
