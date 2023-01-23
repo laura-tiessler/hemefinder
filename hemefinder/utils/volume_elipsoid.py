@@ -135,7 +135,7 @@ def atoms_inertia(xyz):
 
 def detect_ellipsoid(probes, center):
     distances = np.sqrt((np.square(probes[:,np.newaxis]-center).sum(axis=2)))
-    close = np.where(distances<9)[0]
+    close = np.where(distances<7.64)[0]
     sphere = probes[close]
     return sphere
 

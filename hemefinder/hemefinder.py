@@ -15,7 +15,7 @@ import numpy as np
 from .utils.data import load_stats, load_stats_res
 from .utils.parser import parse_residues, read_pdb
 from .utils.print import create_PDB
-from .utils.scoring import clustering, coordination_score, clustering, centroid, residue_scoring, new_probes, coordination_score_mutation, clustering_mutation
+from .utils.scoring import centroid_elipsoid, clustering, coordination_score, clustering, centroid, residue_scoring, new_probes, coordination_score_mutation, clustering_mutation
 from .utils.volume_elipsoid import detect_ellipsoid, detect_residues, elipsoid, volume_pyKVFinder, detect_hole
 
 
@@ -59,6 +59,8 @@ def hemefinder(
                     residues = detect_residues(sphere, all_alphas, all_betas, residues_names)
                     score_res = residue_scoring(residues,stats_res)
                     final_results[k]['score_res'] = score_res
+                    score_eli = centroid_elipsoid(v['centroid'],v['elipsoid'])
+                    final_results[k]['score_elipsoid'] = score_eli
             results_by_cluster[i] = final_results
     
     #For mutations
@@ -95,7 +97,7 @@ def hemefinder(
         sorted_results =  {k:v for k,v in sorted(final_dic.items(), key=lambda x: x[1]['score'], reverse=True)}
         num = 1
         for k,v in sorted_results.items():
-            print(num, k, v['score'], v['score_res'])
+            print(num, k, v['score'],v['score_elipsoid']*v['score_res'])
             num += 1
         create_PDB(sorted_results, outputfile)
 

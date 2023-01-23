@@ -312,6 +312,19 @@ def centroid(coord_residues):
         coord_residues[res]['centroid'] = centroid
     return coord_residues    
 
+def centroid_elipsoid(centroid, elipsoid):
+    probes_elipsoid = np.array(elipsoid).reshape(len(elipsoid),3)
+    lenght_array = len(probes_elipsoid)
+    sum_x = np.sum(probes_elipsoid[:,0])
+    sum_y = np.sum(probes_elipsoid[:,1])
+    sum_z = np.sum(probes_elipsoid[:,2])
+    centroid_eli = [sum_x/lenght_array, sum_y/lenght_array, sum_z/lenght_array]
+    centroid_proves = centroid
+    squared_dist = np.sum((np.array(centroid_eli)-np.array(centroid_proves))**2, axis=0)
+    dist = np.sqrt(squared_dist)
+    score_elipsoid = 3.12626/dist
+    return score_elipsoid
+
 def new_probes(coord_residues_centroid, alphas, betas, stats, res_number_coordinators):
     for res, values in coord_residues_centroid.items():
         centroid=np.array(values['centroid'])
