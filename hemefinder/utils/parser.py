@@ -65,6 +65,7 @@ def find_coordinators(
 
                 
 def parse_residues(
+    target: str,
     molecule: np.array,
     coordinators: list,
     stats: dict):
@@ -110,8 +111,16 @@ def parse_residues(
     res_name_number_coord = np.array(res_name_number_coord)
     all_alphas = np.array(all_alphas)
     all_betas = np.array(all_betas)
+
     residues_names = np.array(residues_names)
     residues_ids= np.array(residues_ids)
+
+    if len(all_alphas) != len(all_betas):
+        print('There is an error in residues composition')
+        f = open("/HDD/3rd_year/hemefinder/benchmark_v2/error_residues.txt", "a")
+        f.write(target+'\n')
+        sys.exit()
+
     return alphas_coord, betas_coord,res_name_number_coord, all_alphas, all_betas, residues_names, residues_ids
 
 

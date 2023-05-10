@@ -2,6 +2,7 @@ from math import nan
 from ossaudiodev import SOUND_MIXER_SYNTH
 import numpy as np
 from .additional import grid
+from itertools import combinations
 
 chemical_nature = {
     'aromatic': {'PHE', 'TYR', 'TRP'},
@@ -71,16 +72,19 @@ def clustering(scores, dic_coordinating):
         if len(residues) == 0:
             continue
         else:
-            residues_t = tuple(residues)
-            score_sum = np.sum(np.array(score))
-            if residues_t not in dic_coordinating:
-                dic_coordinating[residues_t] = {'probes': [coord], 'score': score_sum, 'all_scores':[score_sum]}
+            if len(residues)==1: #For the cases we just have one residue
+                residues_t = tuple(residues)
+                score_sum = np.sum(np.array(score))
+                if residues_t not in dic_coordinating:
+                    dic_coordinating[residues_t] = {'probes': [coord], 'score': score_sum, 'all_scores':[score_sum]}
 
-            else:
-                dic_coordinating[residues_t]['probes'].append(coord)
-                dic_coordinating[residues_t]['score'] += score_sum
-                dic_coordinating[residues_t]['all_scores'].append(score_sum)
-            if len(residues)>1:
+                else:
+                    dic_coordinating[residues_t]['probes'].append(coord)
+                    dic_coordinating[residues_t]['score'] += score_sum
+                    dic_coordinating[residues_t]['all_scores'].append(score_sum)
+
+            elif len(residues)>1:
+                #First we loop through all residues and add them individually to the dictionary
                 for i,res in enumerate(residues):
                     res_t = tuple([res])
                     score_ind = score[i]
@@ -91,18 +95,33 @@ def clustering(scores, dic_coordinating):
                         dic_coordinating[res_t]['probes'].append(coord)
                         dic_coordinating[res_t]['score'] += score_ind
                         dic_coordinating[res_t]['all_scores'].append(score_ind)
-            if len(residues)>2:
-                possibilities = [residues[0:2], residues[1:3]]
-                for i,resis in enumerate(possibilities):
-                    resis_t = tuple(resis)
-                    score_d = np.sum(np.array(score[i:i+2]))
-                    if resis_t not in dic_coordinating:
-                        dic_coordinating[resis_t] = {'probes': [coord], 'score': score_d, 'all_scores':[score_d]}
+
+                if len(residues)==2: #We add the two residues directly
+                    residues_t = tuple(residues)
+                    score_sum = np.sum(np.array(score))
+                    if residues_t not in dic_coordinating:
+                        dic_coordinating[residues_t] = {'probes': [coord], 'score': score_sum, 'all_scores':[score_sum]}
 
                     else:
-                        dic_coordinating[resis_t]['probes'].append(coord)
-                        dic_coordinating[resis_t]['score'] += score_d
-                        dic_coordinating[resis_t]['all_scores'].append(score_d)
+                        dic_coordinating[residues_t]['probes'].append(coord)
+                        dic_coordinating[residues_t]['score'] += score_sum
+                        dic_coordinating[residues_t]['all_scores'].append(score_sum)
+
+
+                if len(residues)>2:
+                    possibilities = list(combinations(residues, 2))
+                    index = list(combinations(range(len(residues)), 2))
+
+                    for i,resis in enumerate(possibilities):
+                        score_sel = [score[a] for a in index[i]]
+                        score_d = np.sum(np.array(score_sel))
+                        if resis not in dic_coordinating:
+                            dic_coordinating[resis] = {'probes': [coord], 'score': score_d, 'all_scores':[score_d]}
+
+                        else:
+                            dic_coordinating[resis]['probes'].append(coord)
+                            dic_coordinating[resis]['score'] += score_d
+                            dic_coordinating[resis]['all_scores'].append(score_d)
 
 
 

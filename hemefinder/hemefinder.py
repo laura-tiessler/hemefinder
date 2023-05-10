@@ -11,6 +11,8 @@ from pathlib import Path
 from unittest import result
 
 import numpy as np
+import json
+from json import dumps
 
 from .utils.data import load_stats, load_stats_res
 from .utils.parser import parse_residues, read_pdb
@@ -32,7 +34,7 @@ def hemefinder(
 
     # Read protein and find possible coordinating residues
     atomic = read_pdb(target, outputdir)
-    alphas, betas, res_name_number_coord, all_alphas, all_betas, residues_names, residues_ids = parse_residues(atomic, coordinators, stats)
+    alphas, betas, res_name_number_coord, all_alphas, all_betas, residues_names, residues_ids = parse_residues(target, atomic, coordinators, stats)
 
     # Detect cavities and analyse possible coordinations
 
@@ -61,6 +63,7 @@ def hemefinder(
                     final_results[k]['score_res'] = score_res
                     score_eli = centroid_elipsoid(v['centroid'],v['elipsoid'])
                     final_results[k]['score_elipsoid'] = score_eli
+                    final_results[k]['total_score'] = v['score']+(score_res*score_eli)
             results_by_cluster[i] = final_results
     
     #For mutations
@@ -86,7 +89,7 @@ def hemefinder(
             results_by_cluster[i] = final_results
 
 
-    basename = Path(target).stem + '_inicial'
+    basename = Path(target).stem 
     outputfile = os.path.join(outputdir, basename)
     
     final_dic = {}
@@ -94,12 +97,17 @@ def hemefinder(
         final_dic.update(res)
 
     if len(mutations) == 0:
-        sorted_results =  {k:v for k,v in sorted(final_dic.items(), key=lambda x: x[1]['score'], reverse=True)}
+        sorted_results =  {k:v for k,v in sorted(final_dic.items(), key=lambda x: x[1]['total_score'], reverse=True)}
         num = 1
         for k,v in sorted_results.items():
-            print(num, k, v['score'],v['score_elipsoid']*v['score_res'])
+            print(num, k, v['total_score'],v['score'])
             num += 1
         create_PDB(sorted_results, outputfile)
+        sorted_results_str = {str(k): v['total_score'] for k, v in sorted_results.items()}
+        json_object = json.dumps(sorted_results_str, indent=4)
+        out_json =  outputfile + '.json'
+        with open(out_json, "w") as outfile_json:
+            outfile_json.write(json_object)
 
     # else:
     #     for k, v in final_dic.items():

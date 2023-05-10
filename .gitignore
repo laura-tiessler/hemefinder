@@ -105,3 +105,10 @@ ENV/
 # IDE settings
 .vscode/
 .idea/
+
+#folder results
+small_benchmark/
+benchmark/
+benchmark_v2/
+benchmark_v3/
+pdb_proves/

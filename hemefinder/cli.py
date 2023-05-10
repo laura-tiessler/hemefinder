@@ -11,7 +11,7 @@ def client() -> dict:
                    help='Molecule PDB file to be analysed.')
     p.add_argument('--outputdir', type=str, default='.',
                    help='Directory where outputs should be stored.')
-    p.add_argument('--coordinators', type=list, default=['HIS','TYR','CYS','MET'],
+    p.add_argument('--coordinators', type=list, default=['HIS','TYR','CYS','MET',],
                    help='List of possible coordinating residues.')
     p.add_argument('--mutations', type=list, default=[],
                    help='List of possible mutating residues.')               
