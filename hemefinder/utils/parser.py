@@ -22,21 +22,17 @@ def read_pdb(file, outputdir):
         - A numpy array with atomic data (residue number, chain, residue name,
         atom name, xyz coordinates and radius) for each atom.
     """
-    if file.endswith('.pdb'):
+    if file.endswith(".pdb"):
         atomic = pyKVFinder.read_pdb(file)
     else:
         pdb_file = download_pdb(file, datadir=outputdir)
-        print(f'Downloading: {file}')
+        print(f"Downloading: {file}")
         atomic = pyKVFinder.read_pdb(str(pdb_file))
 
     return atomic
 
 
-def find_coordinators(
-    atomic: np.array,
-    coordinators: list,
-    stats: dict
-) -> list:
+def find_coordinators(atomic: np.array, coordinators: list, stats: dict) -> list:
     new_coordinators = []
 
     if coordinators is not None:
@@ -49,7 +45,7 @@ def find_coordinators(
     cummulative = 0.0
 
     for res_name, res_info in stats.items():
-        possible_coordinators.append((res_name, res_info['fitness']))
+        possible_coordinators.append((res_name, res_info["fitness"]))
 
     possible_coordinators = sorted(
         possible_coordinators, key=lambda x: x[1], reverse=True
@@ -63,13 +59,9 @@ def find_coordinators(
 
     return new_coordinators
 
-                
-def parse_residues(
-    target: str,
-    molecule: np.array,
-    coordinators: list,
-    stats: dict):
-    #coordinators = find_coordinators(molecule, coordinators, stats)
+
+def parse_residues(target: str, molecule: np.array, coordinators: list, stats: dict):
+    # coordinators = find_coordinators(molecule, coordinators, stats)
 
     alphas_coord = []
     betas_coord = []
@@ -82,30 +74,29 @@ def parse_residues(
         res_name = atom[2]
         res_num = int(atom[0])
         res_chain = atom[1]
-        res_id = str(str(res_num) + '_' + res_chain)
+        res_id = str(str(res_num) + "_" + res_chain)
         atom_name = atom[3]
         coors = np.array(atom[4:7], dtype=float)
 
-        
-        #For residue calculation
-        if atom_name == 'CA':
+        # For residue calculation
+        if atom_name == "CA":
             all_alphas.append(coors)
             residues_names.append(res_name)
             residues_ids.append(res_id)
-            if res_name == 'GLY':
-                all_betas.append(np.array([0,0,0]))
-        if atom_name == 'CB':
+            if res_name == "GLY":
+                all_betas.append(np.array([0, 0, 0]))
+        if atom_name == "CB":
             all_betas.append(coors)
 
         if res_name not in coordinators:
             continue
 
-        if atom_name == 'CA':
+        if atom_name == "CA":
             alphas_coord.append(coors)
-            res_name_number_coord.append([res_name,res_id])
-        elif atom_name == 'CB':
-           betas_coord.append(coors)
-                
+            res_name_number_coord.append([res_name, res_id])
+        elif atom_name == "CB":
+            betas_coord.append(coors)
+
     alphas_coord = np.array(alphas_coord)
     betas_coord = np.array(betas_coord)
     res_name_number_coord = np.array(res_name_number_coord)
@@ -113,15 +104,23 @@ def parse_residues(
     all_betas = np.array(all_betas)
 
     residues_names = np.array(residues_names)
-    residues_ids= np.array(residues_ids)
+    residues_ids = np.array(residues_ids)
 
     if len(all_alphas) != len(all_betas):
-        print('There is an error in residues composition')
-        f = open("/HDD/3rd_year/hemefinder/benchmark_v2/error_residues.txt", "a")
-        f.write(target+'\n')
+        print("There is an error in residues composition")
+        f = open("/HDD/3rd_year/hemefinder/benchmark_v3/error_residues.txt", "a")
+        f.write(target + "\n")
         sys.exit()
 
-    return alphas_coord, betas_coord,res_name_number_coord, all_alphas, all_betas, residues_names, residues_ids
+    return (
+        alphas_coord,
+        betas_coord,
+        res_name_number_coord,
+        all_alphas,
+        all_betas,
+        residues_names,
+        residues_ids,
+    )
 
 
 def download_pdb(file, datadir):
@@ -134,8 +133,8 @@ def download_pdb(file, datadir):
     Returns:
         output_filename (str): path of the pdb file downloaded
     """
-    pdb_filename = f'{file}.pdb'
-    url = f'https://files.rcsb.org/download/{pdb_filename}'
+    pdb_filename = f"{file}.pdb"
+    url = f"https://files.rcsb.org/download/{pdb_filename}"
     outfilename = os.path.join(datadir, pdb_filename)
     try:
         urllib.request.urlretrieve(url, outfilename)
@@ -158,12 +157,13 @@ def load_cav(cavity_path):
         - xyz_cav: xyz of the cavity
     """
     current_dir = os.path.dirname(__file__)
-    data_path = os.path.join(current_dir, 'vdw_mod.dat')
+    data_path = os.path.join(current_dir, "vdw_mod.dat")
     vdw = pyKVFinder.read_vdw(data_path)
     atomic = pyKVFinder.read_pdb(cavity_path, vdw)
     xyz_cav = np.array(atomic[:, [4, 5, 6]], dtype=float)
-    xyz_HA = np.array([a[4:7] for a in atomic if a[3]=='HA'], dtype=float )
+    xyz_HA = np.array([a[4:7] for a in atomic if a[3] == "HA"], dtype=float)
     return xyz_cav, xyz_HA
+
 
 # def load_cav(cavity_path):
 #     """
@@ -221,7 +221,7 @@ def _parse_molecule(lines, file_extension):
     dict
         Name of atoms contained in a given residue (indexed by number_res:chain)
     """
-    if file_extension != '.pdb':
+    if file_extension != ".pdb":
         return None
     # Extract residue information and assign column
     i = 0
@@ -243,7 +243,7 @@ def _parse_molecule(lines, file_extension):
                 # atom name is like " CA ", so we can strip spaces
                 atom_name = split_list[0]
 
-            if atom_name in ['CA', 'CB', 'C', 'N', 'O']:
+            if atom_name in ["CA", "CB", "C", "N", "O"]:
                 altloc = line[16]
                 chainid = line[21]
                 resid = line[22:26].split()[0]
@@ -259,14 +259,14 @@ def _parse_molecule(lines, file_extension):
                     i += 1
                 atoms_in_res[res].add(atom_name)
 
-    #Extract coordinates and atoms information
+    # Extract coordinates and atoms information
     alphas = [[0.0, 0.0, 0.0] for i in range(0, len(list(column_for_res)))]
     betas = [[0.0, 0.0, 0.0] for i in range(0, len(list(column_for_res)))]
     carbons = [[0.0, 0.0, 0.0] for i in range(0, len(list(column_for_res)))]
     nitrogens = [[0.0, 0.0, 0.0] for i in range(0, len(list(column_for_res)))]
     oxygens = [[0.0, 0.0, 0.0] for i in range(0, len(list(column_for_res)))]
     side_chains = []
-    coords_array = [] #For calculate grid size
+    coords_array = []  # For calculate grid size
 
     for line in lines:
         record_type = line[0:6]
@@ -292,8 +292,11 @@ def _parse_molecule(lines, file_extension):
                 y = float(line[38:46])
                 z = float(line[46:54])
             except Exception:
-                raise Exception("Invalid or missing coordinate(s) at \
-                                residue %s, atom %s" % (res, atom_name))
+                raise Exception(
+                    "Invalid or missing coordinate(s) at \
+                                residue %s, atom %s"
+                    % (res, atom_name)
+                )
             coord = [x, y, z]
             if atom_name == "CA":
                 # Coordinates for the grid
@@ -316,11 +319,11 @@ def _parse_molecule(lines, file_extension):
                 coords_array.append(coord)
                 # Coordinates for searching sites
                 oxygens[column_for_res[res]] = coord
-            else: # Atom belongs to a side-chain
+            else:  # Atom belongs to a side-chain
                 coords_array.append(coord)
                 # Coordinates for discarding clashes
                 side_chains.append(coord)
-    
+
     coords_array = np.array(coords_array)
     alphas = np.array(alphas)
     betas = np.array(betas)
@@ -329,4 +332,16 @@ def _parse_molecule(lines, file_extension):
     oxygens = np.array(oxygens)
     side_chains = np.array(side_chains)
 
-    return alphas, betas, carbons, nitrogens, oxygens, column_for_res, res_for_column, name_for_res, atoms_in_res, side_chains, coords_array
+    return (
+        alphas,
+        betas,
+        carbons,
+        nitrogens,
+        oxygens,
+        column_for_res,
+        res_for_column,
+        name_for_res,
+        atoms_in_res,
+        side_chains,
+        coords_array,
+    )

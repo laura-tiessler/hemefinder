@@ -22,48 +22,24 @@ def normalize(density_points):
     normalized = [float((x - min_p) / diff) for x in density_points]
 
 
-# def detect_hole(cav_HA, cav):
-#     with open("prova_clusterX.xyz", "a") as f:
-#         for coord in cav_HA:
-#             f.write("He %s %s %s \n" % (coord[0], coord[1], coord[2]))
-#         f.close()
-#     tree = KDTree(cav_HA)
-#     density_points = []
-#     dist_matrix = tree.sparse_distance_matrix(tree, 4.5)
-
-#     for a in dist_matrix.toarray():
-#         close = np.where(a > 0)[0]
-#         density_points.append(len(close))
-#     density_points_array = np.array(density_points)
-#     ind = np.argsort(density_points_array)[-50:]
-#     coordes = cav_HA[ind]
-#     ind_del = []
-#     for i in range(len(coordes)):
-#         for j in range(i + 1, len(coordes)):
-#             dist = np.linalg.norm(coordes[i] - coordes[j])
-#             if dist < 3:
-#                 ind_del.append(i)
-#                 break
-#     lst_coord = []
-#     new_coordes = [b for a, b in enumerate(coordes) if a not in ind_del]
-#     for a, coord in enumerate(new_coordes):
-#         with open("prova_clusterX.xyz", "a") as f:
-#             f.write("Ne %s %s %s \n" % (coord[0], coord[1], coord[2]))
-#         f.close()
-#         new_probes = grid(coord, 3, 0.6)
-#         lst_coord.append(new_probes)
-#     coord_np = np.array([subitem for item in lst_coord for subitem in item])
-#     coord_np_no_clashes = delete_close_probes_1(coord_np)
-#     return coord_np_no_clashes
-
-
 def detect_hole(cluster_cav_HA, cav):
+    """
+    This function fills up the holes that are left from metals due to proximity of coordinants. The idea is to use the external points from cavities (HA)
+    and find the probes that are surrounded the most by other probes. This are usually regions where there is an opening or a canal.
+    This function first calculates a distance matrix with all
+
+    Input:
+        - pdb of protein
+        - All of values for KVFinder
+
+    Output:
+        - list_output: returns a list with the index of the cavities that
+        fullfill the requirements
+        - it also exports a pdb with these cavities
+    """
+
     cav_lst = list(cav)
     for e, cluster in enumerate(cluster_cav_HA):
-        with open("prova_cluster_%s.xyz" % (e), "w") as f:
-            for coord in cluster:
-                f.write("He %s %s %s \n" % (coord[0], coord[1], coord[2]))
-        f.close()
         tree = KDTree(cluster)
         density_points = []
         dist_matrix = tree.sparse_distance_matrix(tree, 3.5, p=2.0)
@@ -84,21 +60,18 @@ def detect_hole(cluster_cav_HA, cav):
         lst_coord = []
         new_coordes = [b for a, b in enumerate(coordes) if a not in ind_del]
         for a, coord in enumerate(new_coordes):
-            with open("prova_cluster_%s.xyz" % (e), "a") as f:
-                f.write("Ne %s %s %s \n" % (coord[0], coord[1], coord[2]))
-            f.close()
             new_probes = grid(coord, 3, 0.6)
             lst_coord.append(new_probes)
         coord_np = np.array([subitem for item in lst_coord for subitem in item])
-        coord_np_no_clashes = delete_close_probes_1(coord_np, cav)
+        coord_np_no_clashes = delete_close_probes(coord_np, cav)
         for probe in coord_np_no_clashes:
             cav_lst.append(probe)
     cav_more_probes = np.array(cav_lst)
     return cav_more_probes
 
 
-def delete_close_probes_1(new_probes, cav):
-    # Delete coord that are very close to other proves
+def delete_close_probes(new_probes, cav):
+    # Delete new probes that are very close to other new proves
     ind_to_keep = []
     dist_matrix_cav_other_points = np.sqrt(
         (np.square(new_probes[np.newaxis, :] - new_probes[:, np.newaxis]).sum(axis=2))
@@ -113,7 +86,7 @@ def delete_close_probes_1(new_probes, cav):
                     index.remove(i)
     new_probes = np.array(new_probes[index])
 
-    # Delete coord that are very close to original points
+    # Delete probes that are very close to original cavity probes
     ind_to_keep = []
     tree1 = KDTree(new_probes)
     tree2 = KDTree(cav)
@@ -129,7 +102,7 @@ def delete_close_probes_1(new_probes, cav):
 def kmeans(output_cav, num_clus):
     cav, cav_HA = load_cav(output_cav)
 
-    # Perform Kmeans on CAV_HA
+    # Perform Kmeans on CAV_HA to look for points of high density (holes of metal) and build a sphere to fill them
     model = KMeans(
         n_clusters=num_clus,
         init="random",
@@ -145,10 +118,6 @@ def kmeans(output_cav, num_clus):
         clu = np.array((cav_HA[kmeans_clu == cluster]))
         cluster_cav_HA.append(clu)
     new_cav = detect_hole(cluster_cav_HA, cav)
-    with open("prova_forat.xyz", "w") as f:
-        for coord in new_cav:
-            f.write("He %s %s %s \n" % (coord[0], coord[1], coord[2]))
-    f.close()
 
     # Perform Kmeans on probes including filled holes
     model = KMeans(
@@ -164,25 +133,6 @@ def kmeans(output_cav, num_clus):
     probes = []
     for cluster in range(num_clus):
         clu = np.array((new_cav[kmeans_clu == cluster]))
-        probes.append(clu)
-    return probes
-
-
-def kmeans_nohole(output_cav, num_clus):
-    cav, cav_HA = load_cav(output_cav)
-    model = KMeans(
-        n_clusters=num_clus,
-        init="random",
-        n_init=10,
-        max_iter=200,
-        tol=1e-04,
-        random_state=0,
-    )
-    model.fit(cav)
-    kmeans_clu = model.fit_predict(cav)
-    probes = []
-    for cluster in range(num_clus):
-        clu = np.array((cav[kmeans_clu == cluster]))
         probes.append(clu)
     return probes
 
@@ -227,11 +177,11 @@ def volume_pyKVFinder(atomic, pdb: str, outputdir: str):
     probes = []
     for vol in volume.values():
         vol = float(vol)
-        if vol > 207:
+        if vol > 223:
             output_cavity = os.path.join(outputdir, f"cavity_{pdb}_{index}.pdb")
             pyKVFinder.export(
                 output_cavity, cavities, surface, vertices, selection=[index]
-            )  # Delete later
+            )
             if vol < 2500:
                 cav, cav_HA = load_cav(output_cavity)
                 more_probes = detect_hole([cav_HA], cav)
@@ -250,70 +200,6 @@ def volume_pyKVFinder(atomic, pdb: str, outputdir: str):
     message = f"Processed protein {pdb} and found: {len(probes)}"
     message += " pockets with adequate volume."
     print(message)
-    return probes
-
-
-def volume_pyKVFinder_nohole(atomic, pdb: str, outputdir: str):
-    """
-    This function calculates the cavities inside the protein using KVFinder.
-    It also calculates the volume, surface and area.
-
-    Input:
-        - pdb of protein
-        - All of values for KVFinder
-
-    Output:
-        - list_output: returns a list with the index of the cavities that
-        fullfill the requirements
-        - it also exports a pdb with these cavities
-    """
-    tmp_dir = "tmp"
-    # Define values for calculation
-    step = 0.6
-    probe_in = 1.5
-    probe_out = 11.0
-    removal_distance = 2.5
-    volume_cutoff = 5.0
-    surface = "SES"
-    index = 2
-
-    # Create the 3D grid
-    vertices = pyKVFinder.get_vertices(atomic, probe_out=probe_out, step=step)
-    ncav, cavities = pyKVFinder.detect(
-        atomic,
-        vertices,
-        step=step,
-        probe_in=probe_in,
-        probe_out=probe_out,
-        removal_distance=removal_distance,
-        volume_cutoff=volume_cutoff,
-        surface=surface,
-    )
-    surface, volume, area = pyKVFinder.spatial(cavities, step=step)
-    probes = []
-    for vol in volume.values():
-        vol = float(vol)
-        if vol > 207:
-            output_cavity = os.path.join(outputdir, f"cavity_{pdb}_{index}.pdb")
-            pyKVFinder.export(
-                output_cavity, cavities, surface, vertices, selection=[index]
-            )  # Delete later
-            if vol < 2500:
-                cav, cav_HA = load_cav(output_cavity)
-                probes.append(cav)
-            else:
-                num_clus = int(vol / 1000)
-                probes_clu = kmeans_nohole(output_cavity, num_clus)
-                probes.extend(probes_clu)
-        index += 1
-    for a in range(len(probes)):
-        output_cluster = os.path.join(outputdir, f"cluster_{pdb}_{a}.xyz")
-        with open(output_cluster, "w") as f:
-            for coord in probes[a]:
-                f.write("He %s %s %s \n" % (coord[0], coord[1], coord[2]))
-        f.close()
-    message = f"Processed protein {pdb} and found: {len(probes)}"
-    message += " pockets with adequate volume."
     return probes
 
 
@@ -379,7 +265,7 @@ def elipsoid(sphere):
     vw = atoms_inertia(sphere)
     axes, d2, center = moments_of_inertia(vw)
     elen = inertia_ellipsoid_size(d2)
-    if elen[0] > 6.27 and elen[1] > 5.33 and elen[2] > 2.08:
+    if elen[0] > 5.51 and elen[1] > 4.74 and elen[2] > 1.82:
         return True
     else:
         return False
