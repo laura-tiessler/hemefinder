@@ -182,12 +182,14 @@ def volume_pyKVFinder(atomic, pdb: str, outputdir: str):
             pyKVFinder.export(
                 output_cavity, cavities, surface, vertices, selection=[index]
             )
-            if vol < 2500:
+            if vol < 1089:
                 cav, cav_HA = load_cav(output_cavity)
                 more_probes = detect_hole([cav_HA], cav)
                 probes.append(more_probes)
             else:
-                num_clus = int(vol / 1000)
+                print(vol)
+                num_clus = int(vol / 609)
+                print(num_clus)
                 probes_clu = kmeans(output_cavity, num_clus)
                 probes.extend(probes_clu)
         index += 1

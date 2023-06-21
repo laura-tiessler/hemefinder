@@ -27,138 +27,12 @@ chemical_nature = {
 
 
 def coordination_score(
-    alphas: dict, betas: dict, stats: dict, probes: np.array, res_name_num: np.array
-):
-    results_score = []
-    for x, probe in enumerate(probes):
-        alpha_dists = alphas - probe
-        beta_dists = betas - probe
-        d1, d2, angle = geometry(alpha_dists, beta_dists)
-        possible_coordinators, scores = gaussian_scoring(
-            d1, d2, angle, stats, res_name_num
-        )
-        results_score.append([probe, possible_coordinators, scores])
-    return results_score
-
-
-def gaussian_scoring(
-    d1: np.array, d2: np.array, angle: np.array, stats: dict, res_name_num: dict
-) -> float:
-
-    alpha_scores = []
-    beta_scores = []
-    angle_scores = []
-
-    for i, res in enumerate(res_name_num[:, 0]):
-        alpha_scores.append(bimodal(d1[i], *stats[res]["dist_alpha"]))
-        beta_scores.append(bimodal(d2[i], *stats[res]["dist_beta"]))
-        angle_scores.append(bimodal(angle[i], *stats[res]["PAB_angle"]))
-
-    alpha_scores = np.array(alpha_scores)
-    beta_scores = np.array(beta_scores)
-    angle_scores = np.array(angle_scores)
-
-    possible_coordinators = []
-    ind_coordinators = np.where(
-        (alpha_scores > 0.001) & (beta_scores > 0.001) & (angle_scores > 0.01)
-    )[0]
-    if len(ind_coordinators) == 0:
-        fitness = 0
-    else:
-        fitness = []
-        for ind in ind_coordinators:
-            score_ca = alpha_scores[ind]
-            score_cb = beta_scores[ind]
-            score_angle = angle_scores[ind]
-            score_total = (score_ca + score_cb + score_angle) / 3
-            possible_coordinators.append(res_name_num[ind][1])
-            fitness.append(score_total * stats[res_name_num[ind][0]]["fitness"])
-            # fitness.append(score_total) # NO afectat per la proporcio a base de dades
-
-    return possible_coordinators, fitness
-
-
-def clustering(scores, dic_coordinating):
-    for coord, residues, score in scores:
-        if len(residues) == 0:
-            continue
-        else:
-            if len(residues) == 1:  # For the cases we just have one residue
-                residues_t = tuple(residues)
-                score_sum = np.sum(np.array(score))
-                if residues_t not in dic_coordinating:
-                    dic_coordinating[residues_t] = {
-                        "probes": [coord],
-                        "score": score_sum,
-                        "all_scores": [score_sum],
-                    }
-
-                else:
-                    dic_coordinating[residues_t]["probes"].append(coord)
-                    dic_coordinating[residues_t]["score"] += score_sum
-                    dic_coordinating[residues_t]["all_scores"].append(score_sum)
-
-            elif len(residues) > 1:
-                # First we loop through all residues and add them individually to the dictionary
-                for i, res in enumerate(residues):
-                    res_t = tuple([res])
-                    score_ind = score[i]
-                    if res_t not in dic_coordinating:
-                        dic_coordinating[res_t] = {
-                            "probes": [coord],
-                            "score": score_ind,
-                            "all_scores": [score_ind],
-                        }
-
-                    else:
-                        dic_coordinating[res_t]["probes"].append(coord)
-                        dic_coordinating[res_t]["score"] += score_ind
-                        dic_coordinating[res_t]["all_scores"].append(score_ind)
-
-                if len(residues) == 2:  # We add the two residues directly
-                    residues_t = tuple(residues)
-                    score_sum = np.sum(np.array(score))
-                    if residues_t not in dic_coordinating:
-                        dic_coordinating[residues_t] = {
-                            "probes": [coord],
-                            "score": score_sum,
-                            "all_scores": [score_sum],
-                        }
-
-                    else:
-                        dic_coordinating[residues_t]["probes"].append(coord)
-                        dic_coordinating[residues_t]["score"] += score_sum
-                        dic_coordinating[residues_t]["all_scores"].append(score_sum)
-
-                if len(residues) > 2:
-                    possibilities = list(combinations(residues, 2))
-                    index = list(combinations(range(len(residues)), 2))
-
-                    for i, resis in enumerate(possibilities):
-                        score_sel = [score[a] for a in index[i]]
-                        score_d = np.sum(np.array(score_sel))
-                        if resis not in dic_coordinating:
-                            dic_coordinating[resis] = {
-                                "probes": [coord],
-                                "score": score_d,
-                                "all_scores": [score_d],
-                            }
-
-                        else:
-                            dic_coordinating[resis]["probes"].append(coord)
-                            dic_coordinating[resis]["score"] += score_d
-                            dic_coordinating[resis]["all_scores"].append(score_d)
-
-    return dic_coordinating
-
-
-def coordination_score_mutation(
     alphas: dict,
     betas: dict,
     stats: dict,
     probes: np.array,
-    res_name_num: dict,
-    mutations: str,
+    res_name_num: np.array,
+    mutations: list,
     residues_ids: np.array,
 ):
     results_score = []
@@ -166,50 +40,14 @@ def coordination_score_mutation(
         alpha_dists = alphas - probe
         beta_dists = betas - probe
         d1, d2, angle = geometry(alpha_dists, beta_dists)
-        score_mut = gaussian_scoring_mutation(
+        possible_coordinators, scores = gaussian_scoring(
             d1, d2, angle, stats, res_name_num, mutations, residues_ids
         )
-        results_score.append([probe, score_mut])
+        results_score.append([probe, possible_coordinators, scores])
     return results_score
 
 
-def gaussian_scoring_mutation_bad(
-    d1: np.array,
-    d2: np.array,
-    angle: np.array,
-    stats: dict,
-    res_name_num: dict,
-    mutations: dict,
-) -> float:
-    dic_mutations_scores = dict.fromkeys(mutations)
-
-    print(dic_mutations_scores)
-
-    for res in mutations:
-        alpha_scores = bimodal(d1, *stats[res]["dist_alpha"])
-        beta_scores = bimodal(d2, *stats[res]["dist_beta"])
-        angle_scores = bimodal(angle, *stats[res]["PAB_angle"])
-
-        ind_coordinators = np.where(
-            (alpha_scores > 0.01) & (beta_scores > 0.01) & (angle_scores > 0.01)
-        )[0]
-        possible_coordinators = []
-
-        fitness = 0
-        for ind in ind_coordinators:
-            score_ca = alpha_scores[ind]
-            score_cb = beta_scores[ind]
-            score_angle = angle_scores[ind]
-            score_total = (score_ca + score_cb + score_angle) / 3
-            possible_coordinators.append(res_name_num[ind][1])
-            fitness += score_total * stats[res]["fitness"]
-        dic_mutations_scores[res] = [possible_coordinators, fitness]
-
-    print(dic_mutations_scores)
-    return dic_mutations_scores
-
-
-def gaussian_scoring_mutation(
+def gaussian_scoring(
     d1: np.array,
     d2: np.array,
     angle: np.array,
@@ -219,13 +57,39 @@ def gaussian_scoring_mutation(
     residues_ids: np.array,
 ) -> float:
 
-    dic_mutations_scores = dict.fromkeys(mutations)
+    alpha_scores = []
+    beta_scores = []
+    angle_scores = []
 
-    for res in mutations:
-        alpha_scores = []
-        beta_scores = []
-        angle_scores = []
+    if len(mutations) == 0:
+        for i, res in enumerate(res_name_num[:, 0]):
+            alpha_scores.append(bimodal(d1[i], *stats[res]["dist_alpha"]))
+            beta_scores.append(bimodal(d2[i], *stats[res]["dist_beta"]))
+            angle_scores.append(bimodal(angle[i], *stats[res]["PAB_angle"]))
 
+        alpha_scores = np.array(alpha_scores)
+        beta_scores = np.array(beta_scores)
+        angle_scores = np.array(angle_scores)
+
+        possible_coordinators = []
+        ind_coordinators = np.where(
+            (alpha_scores > 0.001) & (beta_scores > 0.001) & (angle_scores > 0.01)
+        )[0]
+        if len(ind_coordinators) == 0:
+            fitness = 0
+        else:
+            fitness = []
+            for ind in ind_coordinators:
+                score_ca = alpha_scores[ind]
+                score_cb = beta_scores[ind]
+                score_angle = angle_scores[ind]
+                score_total = (score_ca + score_cb + score_angle) / 3
+                possible_coordinators.append(res_name_num[ind][1])
+                fitness.append(score_total * stats[res_name_num[ind][0]]["fitness"])
+                # fitness.append(score_total) # NO afectat per la proporcio a base de dades
+
+    else:
+        res = mutations[0]
         for i in range(len(d1)):
             alpha_scores.append(bimodal(d1[i], *stats[res]["dist_alpha"]))
             beta_scores.append(bimodal(d2[i], *stats[res]["dist_beta"]))
@@ -242,35 +106,129 @@ def gaussian_scoring_mutation(
         if len(ind_coordinators) == 0:
             fitness = 0
         else:
-            fitness = 0
+            fitness = []
             for ind in ind_coordinators:
                 score_ca = alpha_scores[ind]
                 score_cb = beta_scores[ind]
                 score_angle = angle_scores[ind]
                 score_total = (score_ca + score_cb + score_angle) / 3
                 possible_coordinators.append(residues_ids[ind])
-                fitness += score_total * stats[res]["fitness"]
-        dic_mutations_scores[res] = [possible_coordinators, fitness]
-    return dic_mutations_scores
+                fitness.append(score_total * stats[res]["fitness"])
+                # fitness.append(score_total) # NO afectat per la proporcio a base de dades
+
+    return possible_coordinators, fitness
+
+
+def clustering(scores, dic_coordinating, mutations):
+    for coord, residues, score in scores:
+        if len(residues) == 0:
+            continue
+
+        else:
+            if len(mutations) != 0:
+                for i, res in enumerate(residues):
+                    if res not in dic_coordinating:
+                        dic_coordinating[res] = {
+                            "probes": [coord],
+                            "score": score[i],
+                            "all_scores": [score[i]],
+                        }
+
+                else:
+                    dic_coordinating[res]["probes"].append(coord)
+                    dic_coordinating[res]["score"] += score[i]
+                    dic_coordinating[res]["all_scores"].append(score[i])
+            else:
+                if len(residues) == 1:  # For the cases we just have one residue
+                    residues_t = tuple(residues)
+                    score_sum = np.sum(np.array(score))
+                    if residues_t not in dic_coordinating:
+                        dic_coordinating[residues_t] = {
+                            "probes": [coord],
+                            "score": score_sum,
+                            "all_scores": [score_sum],
+                        }
+
+                    else:
+                        dic_coordinating[residues_t]["probes"].append(coord)
+                        dic_coordinating[residues_t]["score"] += score_sum
+                        dic_coordinating[residues_t]["all_scores"].append(score_sum)
+
+                elif len(residues) > 1:
+                    # First we loop through all residues and add them individually to the dictionary
+                    for i, res in enumerate(residues):
+                        res_t = tuple([res])
+                        score_ind = score[i]
+                        if res_t not in dic_coordinating:
+                            dic_coordinating[res_t] = {
+                                "probes": [coord],
+                                "score": score_ind,
+                                "all_scores": [score_ind],
+                            }
+
+                        else:
+                            dic_coordinating[res_t]["probes"].append(coord)
+                            dic_coordinating[res_t]["score"] += score_ind
+                            dic_coordinating[res_t]["all_scores"].append(score_ind)
+
+                    if len(residues) == 2:  # We add the two residues directly
+                        residues_t = tuple(residues)
+                        score_sum = np.sum(np.array(score))
+                        if residues_t not in dic_coordinating:
+                            dic_coordinating[residues_t] = {
+                                "probes": [coord],
+                                "score": score_sum,
+                                "all_scores": [score_sum],
+                            }
+
+                        else:
+                            dic_coordinating[residues_t]["probes"].append(coord)
+                            dic_coordinating[residues_t]["score"] += score_sum
+                            dic_coordinating[residues_t]["all_scores"].append(score_sum)
+
+                    if len(residues) > 2:
+                        possibilities = list(combinations(residues, 2))
+                        index = list(combinations(range(len(residues)), 2))
+
+                        for i, resis in enumerate(possibilities):
+                            score_sel = [score[a] for a in index[i]]
+                            score_d = np.sum(np.array(score_sel))
+                            if resis not in dic_coordinating:
+                                dic_coordinating[resis] = {
+                                    "probes": [coord],
+                                    "score": score_d,
+                                    "all_scores": [score_d],
+                                }
+
+                            else:
+                                dic_coordinating[resis]["probes"].append(coord)
+                                dic_coordinating[resis]["score"] += score_d
+                                dic_coordinating[resis]["all_scores"].append(score_d)
+
+    return dic_coordinating
 
 
 def clustering_mutation(scores, dic_coordinating, mutations):
-
     for coord, score in scores:
-        for res_mut, coord_fit in score.items():
-            item = {res: 0 for res in mutations}
-            if len(coord_fit[0]) == 0:
-                continue
-            else:
-                residues_t = tuple(coord_fit[0])
-                if residues_t not in dic_coordinating:
-                    dic_coordinating[residues_t] = {"probes": [coord], "score": item}
-                    dic_coordinating[residues_t]["score"][res_mut] += coord_fit[1]
+        print(score)
+        coord_residues, fitness = score
+        if len(coord_residues) == 0:
+            continue
+        else:
+            for i, res in enumerate(coord_residues):
+                print(res)
+                if res not in dic_coordinating:
+                    dic_coordinating[res] = {
+                        "probes": [coord],
+                        "score": fitness[i],
+                        "all_scores": [fitness[i]],
+                    }
 
                 else:
-                    dic_coordinating[residues_t]["probes"].append(coord)
-                    dic_coordinating[residues_t]["score"][res_mut] += coord_fit[1]
-
+                    dic_coordinating[res]["probes"].append(coord)
+                    dic_coordinating[res]["score"] += fitness[i]
+                    dic_coordinating[res]["all_scores"].append(fitness[i])
+    print(dic_coordinating)
     return dic_coordinating
 
 

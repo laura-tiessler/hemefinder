@@ -26,7 +26,10 @@ def client() -> dict:
         help="List of possible coordinating residues.",
     )
     p.add_argument(
-        "--mutations", type=list, default=[], help="List of possible mutating residues."
+        "--mutations",
+        type=list,
+        default=[],
+        help="List of possible mutating residues.",
     )
     args = vars(p.parse_args())
 
