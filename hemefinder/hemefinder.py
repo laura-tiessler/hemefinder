@@ -65,6 +65,8 @@ def hemefinder(
     probes = volume_pyKVFinder(atomic, target, outputdir)
     results_by_cluster = {}
 
+    print(len(probes))
+    print(np.concatenate(probes))
     if len(mutations) != 0:
         alphas = all_alphas
         betas = all_betas
@@ -159,13 +161,19 @@ def hemefinder(
         )
         num += 1
     create_PDB(sorted_results, outputfile)
-    sorted_results_str = {str(k): v["total_score"] for k, v in sorted_results.items()}
+    sorted_results_str = {
+        str(k): v["total_score_norm"] for k, v in sorted_results.items()
+    }
     json_object = json.dumps(sorted_results_str, indent=4)
     out_json = outputfile + ".json"
     with open(out_json, "w") as outfile_json:
         outfile_json.write(json_object)
 
     end = time.time()
+    f = open("/HDD/3rd_year/hemefinder/Benchmark_2023_data/time.txt", "a")
+    final_time = round(end - start, 2)
+    f.write(str(final_time))
+    f.close()
     print(f"\nComputation took {round(end - start, 2)} s")
 
 

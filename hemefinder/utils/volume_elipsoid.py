@@ -187,9 +187,7 @@ def volume_pyKVFinder(atomic, pdb: str, outputdir: str):
                 more_probes = detect_hole([cav_HA], cav)
                 probes.append(more_probes)
             else:
-                print(vol)
                 num_clus = int(vol / 609)
-                print(num_clus)
                 probes_clu = kmeans(output_cavity, num_clus)
                 probes.extend(probes_clu)
         index += 1
