@@ -66,7 +66,8 @@ def hemefinder(
     results_by_cluster = {}
 
     print(len(probes))
-    print(np.concatenate(probes))
+    # all_probes = np.concatenate(probes)
+
     if len(mutations) != 0:
         alphas = all_alphas
         betas = all_betas
