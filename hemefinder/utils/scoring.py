@@ -1,6 +1,8 @@
 from math import nan
 from ossaudiodev import SOUND_MIXER_SYNTH
+from statistics import mean
 import numpy as np
+import math
 from .additional import grid
 from itertools import combinations
 
@@ -325,7 +327,7 @@ def centroid(coord_residues):
     return coord_residues
 
 
-def centroid_elipsoid(centroid, elipsoid):
+def centroid_elipsoid(centroid, elipsoid, elen, axes, center, d2):
     probes_elipsoid = np.array(elipsoid).reshape(len(elipsoid), 3)
     lenght_array = len(probes_elipsoid)
     sum_x = np.sum(probes_elipsoid[:, 0])
@@ -337,8 +339,25 @@ def centroid_elipsoid(centroid, elipsoid):
         (np.array(centroid_eli) - np.array(centroid_proves)) ** 2, axis=0
     )
     dist = np.sqrt(squared_dist)
+    volumen_eli = float(4 / 3) * math.pi * elen[0] * elen[1] * elen[2]
     score_elipsoid = 3.12626 / dist
-    return score_elipsoid
+    score_elipsoid_2 = dist / volumen_eli
+    score_elipsoid_3 = dist / elen[0]
+    mean_axis = elen[0] + elen[1] + elen[2] / 3
+    score_elipsoid_4 = dist / mean_axis
+
+    matrix = np.column_stack(axes)
+    translated_point = np.array(centroid_eli) - np.array(centroid_proves)
+    coordinates = np.linalg.solve(matrix, translated_point)
+    value1 = abs(coordinates[0] / elen[0])
+    value_2 = abs(coordinates[1] / elen[1])
+    value_3 = abs(coordinates[2] / elen[2])
+    score_elipsoid_4 = 1 - ((value1 + value_2 + value_3) / 3)
+    centrality_1 = (centroid_proves[0] - centroid_eli[0]) ** 2 / elen[0] ** 2
+    centrality_2 = (centroid_proves[1] - centroid_eli[1]) ** 2 / elen[1] ** 2
+    centrality_3 = (centroid_proves[2] - centroid_eli[2]) ** 2 / elen[2] ** 2
+    central = 1 - (centrality_1 + centrality_2 + centrality_3)
+    return score_elipsoid_4
 
 
 def new_probes(coord_residues_centroid, alphas, betas, stats, res_number_coordinators):
@@ -382,3 +401,50 @@ def analyse_residues(residues):
             if res in included_residues:
                 site[group] += round(1 / total, 2)
     return site
+
+
+def angle_distance_3points(a, b, m):
+    a_distances = np.linalg.norm(np.array(a) - np.array(m))
+    b_distances = np.linalg.norm(np.array(b) - np.array(m))
+    ab_distances = np.linalg.norm(np.array(a) - np.array(b))
+    angle = np.arccos(
+        (np.square(a_distances) + np.square(b_distances) - np.square(ab_distances))
+        / (2 * a_distances * b_distances)
+    )
+    return math.degrees(angle), ab_distances
+
+
+def two_coordinants(
+    alphas, betas, residues, centroid, residues_ids, residues_names, stats_two_coord
+):
+    allowed_combinations = [
+        "['CYS', 'HIS']",
+        "['HIS', 'HIS']",
+        "['HIS', 'LYS']",
+        "['HIS', 'MET']",
+        "['HIS', 'TYR']",
+        "['MET', 'MET']",
+        "['MET', 'TYR']",
+    ]
+    index1 = residues_ids.tolist().index(residues[0])
+    index2 = residues_ids.tolist().index(residues[1])
+    residues_types = str(
+        sorted(tuple([residues_names[index1], residues_names[index2]]))
+    )
+    if residues_types not in allowed_combinations:
+        residues_types = "general"
+    alpha_coord1, beta_coord1 = alphas[index1], betas[index1]
+    alpha_coord2, beta_coord2 = alphas[index2], betas[index2]
+    angle_alpha, dist_alpha = angle_distance_3points(
+        alpha_coord1, alpha_coord2, centroid
+    )
+    angle_beta, dist_beta = angle_distance_3points(beta_coord1, beta_coord2, centroid)
+    if (
+        stats_two_coord["angle_alpha"]["min"][residues_types] < angle_alpha
+        and stats_two_coord["angle_beta"]["min"][residues_types] < angle_beta
+        and stats_two_coord["distance_alpha"]["min"][residues_types] < dist_alpha
+        and stats_two_coord["distance_beta"]["min"][residues_types] < dist_beta
+    ):
+        return "yes"
+    else:
+        return "no"

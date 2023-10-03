@@ -28,7 +28,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    description="ate heme binding cavities",
+    description="Prediction of heme binding cavities",
     entry_points={
         'console_scripts': [
             'hemefinder=hemefinder.__main__:main',

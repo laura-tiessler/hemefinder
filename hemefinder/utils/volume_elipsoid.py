@@ -177,7 +177,7 @@ def volume_pyKVFinder(atomic, pdb: str, outputdir: str):
     probes = []
     for vol in volume.values():
         vol = float(vol)
-        if vol > 223:
+        if vol > 130:
             output_cavity = os.path.join(outputdir, f"cavity_{pdb}_{index}.pdb")
             pyKVFinder.export(
                 output_cavity, cavities, surface, vertices, selection=[index]
@@ -203,16 +203,16 @@ def volume_pyKVFinder(atomic, pdb: str, outputdir: str):
     return probes
 
 
+def detect_ellipsoid(probes, center):
+    distances = np.sqrt((np.square(probes[:, np.newaxis] - center).sum(axis=2)))
+    close = np.where(distances < 7.63)[0]
+    sphere = probes[close]
+    return sphere
+
+
 def atoms_inertia(xyz):
     weights = [1 for a in range(len(xyz))]  # fer numpy array de 1
     return [(xyz, weights)]
-
-
-def detect_ellipsoid(probes, center):
-    distances = np.sqrt((np.square(probes[:, np.newaxis] - center).sum(axis=2)))
-    close = np.where(distances < 7.64)[0]
-    sphere = probes[close]
-    return sphere
 
 
 def moments_of_inertia(vw):
@@ -266,9 +266,9 @@ def elipsoid(sphere):
     axes, d2, center = moments_of_inertia(vw)
     elen = inertia_ellipsoid_size(d2)
     if elen[0] > 5.51 and elen[1] > 4.74 and elen[2] > 1.82:
-        return True
+        return axes, d2, center, elen
     else:
-        return False
+        return 0, 0, 0, 0
 
 
 def detect_residues(points, alphas, betas, residue_names):

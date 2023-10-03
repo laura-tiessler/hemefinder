@@ -15,6 +15,13 @@ def load_stats_res():
     with open(stats_path) as json_reader:
         stats = json.load(json_reader)
     return stats
+    
+def load_stats_two_coord():
+    current_dir = os.path.dirname(__file__)
+    stats_path = os.path.join(current_dir, 'stats', 'two_coord_data.json')
+    with open(stats_path) as json_reader:
+        stats = json.load(json_reader)
+    return stats
 
 
 DIST_PROBE_ALPHA = {

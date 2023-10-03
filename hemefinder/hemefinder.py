@@ -14,7 +14,7 @@ import numpy as np
 import json
 from json import dumps
 
-from .utils.data import load_stats, load_stats_res
+from .utils.data import load_stats, load_stats_res, load_stats_two_coord
 from .utils.parser import parse_residues, read_pdb
 from .utils.print import create_PDB
 from .utils.scoring import (
@@ -26,6 +26,7 @@ from .utils.scoring import (
     residue_scoring,
     new_probes,
     clustering_mutation,
+    two_coordinants,
 )
 from .utils.volume_elipsoid import (
     detect_ellipsoid,
@@ -48,6 +49,7 @@ def hemefinder(
     # Load stats for bimodal distributions
     stats = load_stats()
     stats_res = load_stats_res()
+    stats_two_coord = load_stats_two_coord()
 
     # Read protein and find possible coordinating residues
     atomic = read_pdb(target, outputdir)
@@ -65,14 +67,13 @@ def hemefinder(
     probes = volume_pyKVFinder(atomic, target, outputdir)
     results_by_cluster = {}
 
-    print(len(probes))
     # all_probes = np.concatenate(probes)
 
     if len(mutations) != 0:
         alphas = all_alphas
         betas = all_betas
 
-    for i, probe in enumerate(probes):
+    for i, probe in enumerate(probes):  # Loop throug different cluster and its proves
         final_results = {}
         dic_coordinating = {}
         scores = coordination_score(
@@ -91,8 +92,8 @@ def hemefinder(
 
         for k, v in coord_residues_centroid.items():
             sphere = detect_ellipsoid(probe, v["centroid"])
-            yes_no = elipsoid(sphere)
-            if yes_no == True:
+            axes, d2, center, elen = elipsoid(sphere)
+            if elen != 0:
                 final_results[k] = v
                 final_results[k]["elipsoid"] = np.array(sphere)
                 residues = detect_residues(
@@ -100,17 +101,42 @@ def hemefinder(
                 )
                 score_res = residue_scoring(residues, stats_res)
                 final_results[k]["score_res"] = score_res
-                score_eli = centroid_elipsoid(v["centroid"], v["elipsoid"])
+                score_eli = centroid_elipsoid(
+                    v["centroid"], v["elipsoid"], elen, axes, center, d2
+                )
                 final_results[k]["score_elipsoid"] = score_eli
-                final_results[k]["total_score"] = v["score"] + (score_res * score_eli)
         results_by_cluster[i] = final_results
 
     basename = Path(target).stem
     outputfile = os.path.join(outputdir, basename)
 
     final_dic = {}
+    # Loop through all the results of different clusters and selects the one that has the highest score
     for res in results_by_cluster.values():
-        final_dic.update(res)
+        for res_ind, res_ind_values in res.items():
+            if res_ind not in final_dic:
+                final_dic.update({res_ind: res_ind_values})
+            else:
+                if res_ind_values["score"] > final_dic[res_ind]["score"]:
+                    final_dic.update({res_ind: res_ind_values})
+
+    # Check cases two coordinants
+    to_remove = []
+    for residues_coord, residues_coord_values in final_dic.items():
+        if len(residues_coord) > 1:
+            two_coord_veredict = two_coordinants(
+                all_alphas,
+                all_betas,
+                residues_coord,
+                residues_coord_values["centroid"],
+                residues_ids,
+                residues_names,
+                stats_two_coord,
+            )
+            if two_coord_veredict == "no":
+                to_remove.append(residues_coord)
+
+    final_dic = {key: final_dic[key] for key in final_dic if key not in to_remove}
 
     scores = [val["score"] for key, val in final_dic.items() if "score" in val]
     max_scores = max(scores)
@@ -121,8 +147,8 @@ def hemefinder(
         for key, val in final_dic.items()
         if "score_elipsoid" in val
     ]
-    max_scores_eli = max(scores_eli)
-    min_score_eli = min(scores_eli)
+    max_scores_eli = max(scores_eli)  # inversed
+    min_score_eli = min(scores_eli)  # inversed
     diff_score_eli = max_scores_eli - min_score_eli
     scores_res = [
         val["score_res"] for key, val in final_dic.items() if "score_res" in val
@@ -155,8 +181,8 @@ def hemefinder(
         print(
             num,
             k,
-            v["total_score"],
             v["score"],
+            v["score_elipsoid"],
             v["score_res"],
             v["total_score_norm"],
         )
@@ -173,7 +199,10 @@ def hemefinder(
     end = time.time()
     f = open("/HDD/3rd_year/hemefinder/Benchmark_2023_data/time.txt", "a")
     final_time = round(end - start, 2)
+    f.write(str(target[:-4]))
+    f.write(str(":"))
     f.write(str(final_time))
+    f.write(str("\n"))
     f.close()
     print(f"\nComputation took {round(end - start, 2)} s")
 
