@@ -30,3 +30,38 @@ The installtion requires a conda environment with few dependencies:
     > pip install pyKVFinder
     > conda install -c anaconda numpy 
     > conda install -c jmcmurray json 
+
+Usage
+--------
+
+The software is run from the terminal and if defaulf parameters are used only the input PDB is needed.
+* Example with PDB
+  
+.. code-block:: bash
+    
+    > hemefinder target_name.pdb
+
+* Example of downloading directy from PDB server:
+  
+.. code-block:: bash
+    
+    > hemefinder target_name.pdb
+
+The main parameters that can be tuned for calculations are the following:
+* `--output`: Directory where outputs should be stored. 
+* * `--coordinators`: List of possible coordinating residues
+* * `--mutations`: List of possible mutating residues
+* * `--num_coordinants`: List of possible mutating residues
+
+License
+--------
+
+* Free software: BSD license
+
+Credits
+-------
+This package was created with Cookiecutter_ and 
+the `audreyr/cookiecutter-pypackage`_ project template.
+
+.. _Cookiecutter: https://github.com/audreyr/cookiecutter
+.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
