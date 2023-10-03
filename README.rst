@@ -22,7 +22,7 @@ Installation
 
 The installtion requires a conda environment with few dependencies:
 
-.. code:: bash
+.. code-block:: bash
 
 > conda create -n {name} python=3.9
 > conda activate {name}
@@ -39,15 +39,14 @@ The software is run from the terminal and if defaulf parameters are used only th
 
 * Example with PDB
 
-``bash
+bash
 > hemefinder target_name.pdb
-``
+
 
 * Example of downloading directy from PDB server:
 
-``bash
+bash
 > biobrigit target 
-``
 
 The main parameters that can be tuned for calculations are the following:
 
