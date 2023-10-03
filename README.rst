@@ -2,31 +2,26 @@
 HemeFinder
 ==========
 
-
-.. image:: https://img.shields.io/pypi/v/hemefinder.svg
-        :target: https://pypi.python.org/pypi/hemefinder
-
-.. image:: https://img.shields.io/travis/laura-tiessler/hemefinder.svg
-        :target: https://travis-ci.com/laura-tiessler/hemefinder
-
-.. image:: https://readthedocs.org/projects/hemefinder/badge/?version=latest
-        :target: https://hemefinder.readthedocs.io/en/latest/?version=latest
-        :alt: Documentation Status
+HemeFinder is a computational tool for detecting heme binding sites based exclusively on the protein structure and the geometrical predisposition of heme binding sites. This software relies on structural and physico-chemical characteristics of heme sites, including shape, residue composition, and three geometric descriptors of the protein's backbone.  HemeFinder is able to predict natural heme-binding sites and explore the potential to design new ArM based on heme.
 
 
 
-
-ate heme binding cavities
-
-
-* Free software: BSD license
-* Documentation: https://hemefinder.readthedocs.io.
 
 
 Features
 --------
 
-* TODO
+**Possible applications:**
+* Identification of possible heme binding sites
+* Detection of heme binding pathways
+* Design of new ArM based on heme 
+
+Features
+--------
+
+License
+--------
+* Free software: BSD license
 
 Credits
 -------
