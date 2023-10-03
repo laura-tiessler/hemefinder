@@ -19,7 +19,9 @@ Features
 
 Installation
 --------
+
 The installtion requires a conda environment with few dependencies:
+
 ```bash
 > conda create -n {name} python=3.9
 > conda activate {name}
@@ -28,6 +30,30 @@ The installtion requires a conda environment with few dependencies:
 > conda install -c anaconda numpy 
 > conda install -c jmcmurray json 
 ```
+
+Installation
+--------
+
+The software is run from the terminal and if defaulf parameters are used only the input PDB is needed.
+
+* Example with PDB
+
+```bash
+> hemefinder target_name.pdb
+```
+
+* Example of downloading directy from PDB server:
+
+```bash
+> biobrigit target 
+```
+
+The main parameters that can be tuned for calculations are the following:
+
+* `--output`: Directory where outputs should be stored. 
+* `--coordinators`: List of possible coordinating residues
+* `--mutations`: List of possible mutating residues
+* `--num_coordinants`: List of possible mutating residues
 
 
 License
