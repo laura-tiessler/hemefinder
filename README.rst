@@ -35,6 +35,7 @@ Usage
 --------
 
 The software is run from the terminal and if defaulf parameters are used only the input PDB is needed.
+
 * Example with PDB
   
 .. code-block:: bash
@@ -45,13 +46,36 @@ The software is run from the terminal and if defaulf parameters are used only th
   
 .. code-block:: bash
     
-    > hemefinder target_name.pdb
+    > hemefinder target_name
 
 The main parameters that can be tuned for calculations are the following:
+
 * `--output`: Directory where outputs should be stored. 
-* * `--coordinators`: List of possible coordinating residues
-* * `--mutations`: List of possible mutating residues
-* * `--num_coordinants`: List of possible mutating residues
+* `--coordinators`: List of possible coordinating residues
+* `--mutations`: List of possible mutating residues
+* `--num_coordinants`: List of possible mutating residues
+
+
+Other parameters can also be tuned, but it is not recommended:
+* `--output`: Directory where outputs should be stored. 
+
+
+Example:
+--------
+
+The software print de results in the terminal, but also generates two output files. 
+
+1. A json file that contains the possible heme coordinating residues and its corresponding scores, sorted by score. 
+2. A PDB file that contains the centroid of the coordinating probes, all the probes that make up the ellipsoid and the coordinating probes. Each result is represented by different atom types (Centroid = He, ellipsoid = Xe and coordinating probes = Ne).  
+
+
+Example:
+--------
+
+.. code-block:: bash
+    
+    > hemefinder 1dkh --coordinators 1 --output results_1dkh
+
 
 License
 --------
