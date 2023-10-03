@@ -22,14 +22,14 @@ Installation
 
 The installtion requires a conda environment with few dependencies:
 
-.. code-block:: bash
+```bash
 > conda create -n {name} python=3.9
 > conda activate {name}
 > pip install git+https://github.com/laura-tiessler/hemefinder/
 > pip install pyKVFinder
 > conda install -c anaconda numpy 
 > conda install -c jmcmurray json 
-
+```
 
 
 Installation
