@@ -26,6 +26,36 @@ def client() -> dict:
         default=[],
         help="List of possible mutating residues.",
     )
+    p.add_argument(
+        "--probe_in",
+        type=float,
+        default=1.5,
+        help="Probe in pyKVFinder.",
+    )
+    p.add_argument(
+        "--probe_out",
+        type=float,
+        default=11.0,
+        help="Probe out pyKVFinder.",
+    )
+    p.add_argument(
+        "--removal_distance",
+        type=float,
+        default=2.5,
+        help="Removal distance.",
+    )
+    p.add_argument(
+        "--volume_cutoff",
+        type=float,
+        default=1.5,
+        help="Volume cutoff",
+    )
+    p.add_argument(
+        "--surface",
+        type=str,
+        default="SES",
+        help="SES or SASA",
+    )
     args = vars(p.parse_args())
 
     # Prepare output directory

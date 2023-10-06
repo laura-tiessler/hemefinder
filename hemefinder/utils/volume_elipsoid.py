@@ -137,7 +137,8 @@ def kmeans(output_cav, num_clus):
     return probes
 
 
-def volume_pyKVFinder(atomic, pdb: str, outputdir: str):
+def volume_pyKVFinder(atomic, pdb: str, outputdir: str, probe_in: float, 
+    probe_out: float, removal_distance = float, volume_cutoff = float, surface = str):
     """
     This function calculates the cavities inside the protein using KVFinder.
     It also calculates the volume, surface and area.
@@ -154,11 +155,6 @@ def volume_pyKVFinder(atomic, pdb: str, outputdir: str):
     tmp_dir = "tmp"
     # Define values for calculation
     step = 0.6
-    probe_in = 1.5
-    probe_out = 11.0
-    removal_distance = 2.5
-    volume_cutoff = 5.0
-    surface = "SES"
     index = 2
 
     # Create the 3D grid

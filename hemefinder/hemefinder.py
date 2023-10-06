@@ -43,7 +43,8 @@ def normalize(value, max, min, diff):
 
 
 def hemefinder(
-    target: str, outputdir: str, coordinators: int, mutations: int
+    target: str, outputdir: str, coordinators: int, mutations: int, probe_in: float, 
+    probe_out: float, removal_distance = float, volume_cutoff = float, surface = str
 ):
     start = time.time()
     # Load stats for bimodal distributions
@@ -66,8 +67,7 @@ def hemefinder(
         residues_ids,
     ) = parse_residues(target, atomic, coordinators, stats)
     # Detect cavities and analyse possible coordinations
-
-    probes = volume_pyKVFinder(atomic, target, outputdir)
+    probes = volume_pyKVFinder(atomic, target, outputdir, probe_in, probe_out, removal_distance, volume_cutoff, surface)
     results_by_cluster = {}
 
     # all_probes = np.concatenate(probes)
