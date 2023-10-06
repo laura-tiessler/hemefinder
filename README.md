@@ -1,11 +1,7 @@
-==========
 HemeFinder
 ==========
 
 HemeFinder is a computational tool for detecting heme binding sites based exclusively on the protein structure and the geometrical predisposition of heme binding sites. This software relies on structural and physico-chemical characteristics of heme sites, including shape, residue composition, and three geometric descriptors of the protein's backbone.  HemeFinder is able to predict natural heme-binding sites and explore the potential to design new ArM based on heme.
-
-
-
 
 
 Features
@@ -57,6 +53,7 @@ The main parameters that can be tuned for calculations are the following:
 
 
 Other parameters can also be tuned, but it is not recommended:
+
 * `--output`: Directory where outputs should be stored. 
 
 
@@ -71,6 +68,7 @@ The software print de results in the terminal, but also generates two output fil
 <picture>
   <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/laura-tiessler/hemefinder/blob/main/docs/Tutorial_heme.png" width="850" class="center">
 </picture>
+
 
 Example:
 --------
