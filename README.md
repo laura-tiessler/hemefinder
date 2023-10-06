@@ -58,7 +58,7 @@ Other parameters can also be tuned, but it is not recommended:
 * `--output`: Directory where outputs should be stored. 
 
 
-Example:
+Output:
 --------
 
 The software print de results in the terminal, but also generates two output files. 
