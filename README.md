@@ -66,7 +66,9 @@ Example:
 The software print de results in the terminal, but also generates two output files. 
 
 1. A json file that contains the possible heme coordinating residues and its corresponding scores, sorted by score. 
-2. A PDB file that contains the centroid of the coordinating probes, all the probes that make up the ellipsoid and the coordinating probes. Each result is represented by different atom types (Centroid = He, ellipsoid = Xe and coordinating probes = Ne).  
+2. A PDB file that contains the centroid of the coordinating probes, all the probes that make up the ellipsoid and the coordinating probes. Each result is represented by different atom types (Centroid = He, ellipsoid = Xe and coordinating probes = Ne).
+
+![alt text]([http://url/to/img.png](https://github.com/laura-tiessler/hemefinder/blob/main/docs/Tutorial_heme.png))
 
 
 Example:
