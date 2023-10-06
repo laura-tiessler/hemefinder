@@ -43,13 +43,16 @@ def normalize(value, max, min, diff):
 
 
 def hemefinder(
-    target: str, outputdir: str, coordinators: int or list, mutations: int or list
+    target: str, outputdir: str, coordinators: int, mutations: int
 ):
     start = time.time()
     # Load stats for bimodal distributions
     stats = load_stats()
     stats_res = load_stats_res()
     stats_two_coord = load_stats_two_coord()
+
+    #Transform input to list for residues and mutation
+    coordinators = list(map(str, coordinators.strip('[]').split(',')))
 
     # Read protein and find possible coordinating residues
     atomic = read_pdb(target, outputdir)

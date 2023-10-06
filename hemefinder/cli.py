@@ -16,13 +16,8 @@ def client() -> dict:
     )
     p.add_argument(
         "--coordinators",
-        type=list,
-        default=[
-            "HIS",
-            "TYR",
-            "CYS",
-            "MET",
-        ],
+        type=str,
+        default='["HIS","TYR","CYS","MET",]',
         help="List of possible coordinating residues.",
     )
     p.add_argument(

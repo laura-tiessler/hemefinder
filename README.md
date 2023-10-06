@@ -71,9 +71,9 @@ The software print de results in the terminal, but also generates two output fil
 Example:
 --------
 
-Example of search for heme binding site with minimum of 2 coordinating His residues.
+Example of search for heme binding site with minimum of 2 coordinating His or Cys residues.
 
-    > hemefinder 1dkh --coordinators 1 --output results_1dkh
+    > hemefinder 1dkh --coordinators ['HIS', 'CYS'] --output results_1dkh
 
 
 License
