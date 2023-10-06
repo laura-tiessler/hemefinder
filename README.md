@@ -76,6 +76,10 @@ Example of search for heme binding site with minimum of 2 coordinating His or Cy
     > hemefinder 1dkh --coordinators ['HIS', 'CYS'] --output results_1dkh
 
 
+Example of search for heme binding site and introduce a His mutation if necessary.
+
+    > hemefinder 1dkh --mutations ['HIS'] --output results_1dkh
+    
 License
 --------
 
