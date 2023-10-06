@@ -18,14 +18,15 @@ Installation
 
 The installtion requires a conda environment with few dependencies:
 
-.. code-block:: bash
-
+```bash
     > conda create -n {name} python=3.9
     > conda activate {name}
     > pip install git+https://github.com/laura-tiessler/hemefinder/
     > pip install pyKVFinder
     > conda install -c anaconda numpy 
-    > conda install -c jmcmurray json 
+    > conda install -c jmcmurray json
+```
+
 
 Usage
 --------
@@ -34,15 +35,15 @@ The software is run from the terminal and if defaulf parameters are used only th
 
 * Example with PDB
   
-.. code-block:: bash
-    
+```bash
     > hemefinder target_name.pdb
+```
 
 * Example of downloading directy from PDB server:
-  
-.. code-block:: bash
-    
+
+```bash
     > hemefinder target_name
+```
 
 The main parameters that can be tuned for calculations are the following:
 
@@ -65,16 +66,13 @@ The software print de results in the terminal, but also generates two output fil
 1. A json file that contains the possible heme coordinating residues and its corresponding scores, sorted by score. 
 2. A PDB file that contains the centroid of the coordinating probes, all the probes that make up the ellipsoid and the coordinating probes. Each result is represented by different atom types (Centroid = He, ellipsoid = Xe and coordinating probes = Ne).
 
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/laura-tiessler/hemefinder/blob/main/docs/Tutorial_heme.png" width="850" class="center">
-</picture>
-
+![Output](/docs/Tutorial_heme.png)
 
 Example:
 --------
 
-.. code-block:: bash
-    
+Example of search for heme binding site with minimum of 2 coordinating His residues.
+
     > hemefinder 1dkh --coordinators 1 --output results_1dkh
 
 
