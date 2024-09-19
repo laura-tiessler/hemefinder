@@ -5,7 +5,7 @@ import numpy as np
 import sys
 
 import pyKVFinder
-from numpy import argsort, array, dot, float, identity, linalg, outer, zeros
+from numpy import argsort, array, dot, identity, linalg, outer, zeros
 from sklearn.cluster import KMeans
 from scipy import sparse
 from scipy.spatial import cKDTree as KDTree
