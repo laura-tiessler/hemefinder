@@ -21,10 +21,13 @@ The installtion requires a conda environment with few dependencies:
 ```bash
     > conda create -n {name} python=3.9
     > conda activate {name}
-    > pip install git+https://github.com/laura-tiessler/hemefinder/
-    > pip install pyKVFinder
-    > conda install -c anaconda numpy 
+    > git clone https://github.com/laura-tiessler/hemefinder.git
+    > conda install -c anaconda numpy
+    > conda install anaconda::scikit-learn
+    > conda install conda-forge::psutil
     > conda install -c jmcmurray json
+    > pip install -e .
+
 ```
 
 
