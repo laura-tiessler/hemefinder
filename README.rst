@@ -18,7 +18,7 @@ Installation
 
 The installtion requires a conda environment with few dependencies:
 
-```bash
+.. code:: python
     > conda create -n {name} python=3.9
     > conda activate {name}
     > git clone https://github.com/laura-tiessler/hemefinder.git
@@ -27,8 +27,6 @@ The installtion requires a conda environment with few dependencies:
     > conda install conda-forge::psutil
     > conda install -c jmcmurray json
     > pip install -e .
-
-```
 
 
 Usage
