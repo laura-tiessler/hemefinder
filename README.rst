@@ -18,7 +18,6 @@ Installation
 
 The installtion requires a conda environment with few dependencies:
 
-.. code:: python
     > conda create -n {name} python=3.9
     > conda activate {name}
     > git clone https://github.com/laura-tiessler/hemefinder.git
@@ -35,16 +34,13 @@ Usage
 The software is run from the terminal and if defaulf parameters are used only the input PDB is needed.
 
 * Example with PDB
-  
-```bash
+
     > hemefinder target_name.pdb
-```
+
 
 * Example of downloading directy from PDB server:
 
-```bash
     > hemefinder target_name
-```
 
 The main parameters that can be tuned for calculations are the following:
 
