@@ -45,7 +45,7 @@ def normalize(value, maxim, minim, diff):
 
 
 def hemefinder(
-        target: str, outputdir: str, coordinators: str, min_num_coordinants: int, mutations: list, probe_in: float, 
+        target: str, outputdir: str, coordinators: str, min_num_coordinators: int, mutations: list, probe_in: float, 
     probe_out: float, removal_distance = float, volume_cutoff = float, surface = str
 ):
     start = time.time()
@@ -141,7 +141,7 @@ def hemefinder(
             if two_coord_veredict == "no":
                 to_remove.append(residues_coord)
         else:
-            if min_num_coordinants == 2:
+            if min_num_coordinators == 2:
                 to_remove.append(residues_coord)
 
     final_dic = {key: final_dic[key] for key in final_dic if key not in to_remove}
