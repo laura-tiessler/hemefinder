@@ -37,13 +37,15 @@ from .utils.volume_elipsoid import (
 )
 
 
-def normalize(value, max, min, diff):
-    normal = float((value - min) / diff)
+def normalize(value, maxim, minim, diff):
+    if diff == 0:
+        return 1
+    normal = float((value - minim) / diff)
     return normal
 
 
 def hemefinder(
-    target: str, outputdir: str, coordinators: int, mutations: int, probe_in: float, 
+        target: str, outputdir: str, coordinators: str, min_num_coordinants: int, mutations: list, probe_in: float, 
     probe_out: float, removal_distance = float, volume_cutoff = float, surface = str
 ):
     start = time.time()
@@ -123,7 +125,7 @@ def hemefinder(
                 if res_ind_values["score"] > final_dic[res_ind]["score"]:
                     final_dic.update({res_ind: res_ind_values})
 
-    # Check cases two coordinants
+    # Check cases two coordinants or minimum cordinants is correct:
     to_remove = []
     for residues_coord, residues_coord_values in final_dic.items():
         if len(residues_coord) > 1:
@@ -137,6 +139,9 @@ def hemefinder(
                 stats_two_coord,
             )
             if two_coord_veredict == "no":
+                to_remove.append(residues_coord)
+        else:
+            if min_num_coordinants == 2:
                 to_remove.append(residues_coord)
 
     final_dic = {key: final_dic[key] for key in final_dic if key not in to_remove}
@@ -198,6 +203,10 @@ def hemefinder(
     out_json = outputfile + ".json"
     with open(out_json, "w") as outfile_json:
         outfile_json.write(json_object)
+    
+    for fname in os.listdir(outputdir):
+        if fname.startswith("cavity") or fname.startswith("cluster"):
+            os.remove(os.path.join(outputdir, fname))
 
     end = time.time()
     f = open("/HDD/3rd_year/hemefinder/Benchmark_2023_data/time.txt", "a")

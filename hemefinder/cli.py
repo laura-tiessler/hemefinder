@@ -21,6 +21,12 @@ def client() -> dict:
         help="List of possible coordinating residues.",
     )
     p.add_argument(
+        "--min_num_coordinators",
+        type=int,
+        default=1,
+        help="Minum number of coordinants.",
+    )
+    p.add_argument(
         "--mutations",
         type=list,
         default=[],
