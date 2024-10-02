@@ -18,11 +18,20 @@ Installation
 
 The installtion requires a conda environment with few dependencies:
 
-- conda create -n {name} python=3.9
-- conda activate {name}
-- git clone https://github.com/laura-tiessler/hemefinder.git
-- conda install -c anaconda -c conda-forge -c jmcmurray numpy scikit-learn psutil json
-- pip install -e .
+        > conda create -n {name} python=3.9
+
+
+        > conda activate {name}
+
+
+        > git clone https://github.com/laura-tiessler/hemefinder.git
+
+
+        > conda install -c anaconda -c conda-forge -c jmcmurray numpy scikit-learn psutil json
+
+
+        > pip install -e .
+
 
 
 Usage
@@ -42,14 +51,18 @@ The software is run from the terminal and if defaulf parameters are used only th
 The main parameters that can be tuned for calculations are the following:
 
 `--output`: Directory where outputs should be stored. 
+
 `--coordinators`: List of possible coordinating residues
+
 `--mutations`: List of possible mutating residues
+
 `--num_coordinants`: List of possible mutating residues
 
 
 Other parameters can also be tuned, but it is not recommended:
 
 `--output`: Directory where outputs should be stored. 
+
 
 
 Output:
