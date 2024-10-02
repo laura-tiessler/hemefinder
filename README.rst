@@ -50,18 +50,18 @@ The software is run from the terminal and if defaulf parameters are used only th
 
 The main parameters that can be tuned for calculations are the following:
 
-`--output`: Directory where outputs should be stored. 
+        `--output`: Directory where outputs should be stored. 
 
-`--coordinators`: List of possible coordinating residues
+        `--coordinators`: List of possible coordinating residues
 
-`--mutations`: List of possible mutating residues
+        `--mutations`: List of possible mutating residues
 
-`--num_coordinants`: List of possible mutating residues
+        `--num_coordinants`: List of possible mutating residues
 
 
 Other parameters can also be tuned, but it is not recommended:
 
-`--output`: Directory where outputs should be stored. 
+        `--output`: Directory where outputs should be stored. 
 
 
 
