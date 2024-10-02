@@ -189,9 +189,6 @@ def hemefinder(
         print(
             num,
             k,
-            v["score"],
-            v["score_elipsoid"],
-            v["score_res"],
             v["total_score_norm"],
         )
         num += 1
@@ -209,7 +206,7 @@ def hemefinder(
             os.remove(os.path.join(outputdir, fname))
 
     end = time.time()
-    f = open("/HDD/3rd_year/hemefinder/Benchmark_2023_data/time.txt", "a")
+    f = open("./time.txt", "a")
     final_time = round(end - start, 2)
     f.write(str(target[:-4]))
     f.write(str(":"))
