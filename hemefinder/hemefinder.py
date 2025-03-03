@@ -40,6 +40,15 @@ def normalize(value, maxim, minim, diff):
     return normal
 
 
+def welcome():
+    mssg = "|  Welcome to HemeFinder |"
+    mssg2 ="| by Laura Tiessler-Sala |"
+    print("-" * len(mssg))
+    print(mssg)
+    print(mssg2)
+    print("-" * len(mssg))
+
+
 def hemefinder(
     target: str,
     outputdir: str,
@@ -189,13 +198,13 @@ def hemefinder(
                                    diff_score_eli)
         final_dic[k]["total_score_norm"] = score_norm + score_norm_eli + score_norm_res
 
-    sorted_results = {k: v for k, v in sorted(final_dic.items(),
+    sorted_results = {k[0].item(): v for k, v in sorted(final_dic.items(),
                                               key=lambda x: x[1]["total_score_norm"],
                                               reverse=True)}
 
     num = 1
     for k, v in sorted_results.items():
-        print(num, k[0].item(), v["total_score_norm"])
+        print(num, k, v["total_score_norm"])
         num += 1
 
     create_PDB(sorted_results, outputfile)
