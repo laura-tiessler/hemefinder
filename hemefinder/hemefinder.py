@@ -42,7 +42,7 @@ def normalize(value, maxim, minim, diff):
 
 def welcome():
     mssg = "|  Welcome to HemeFinder |"
-    mssg2 ="| by Laura Tiessler-Sala |"
+    mssg2 = "| by Laura Tiessler-Sala |"
     print("-" * len(mssg))
     print(mssg)
     print(mssg2)
