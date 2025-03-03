@@ -18,7 +18,7 @@ requirements = [
     'typer'
 ]
 
-test_requirements = [ ]
+test_requirements = requirements + ['pytest']
 
 setup(
     author="Laura Tiessler-Sala",
