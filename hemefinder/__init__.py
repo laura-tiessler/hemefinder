@@ -1,6 +1,6 @@
 """Top-level package for HemeFinder."""
 
-from .hemefinder import *
+from .hemefinder import hemefinder
 from .utils import *
 
 __author__ = """Laura Tiessler-Sala"""
