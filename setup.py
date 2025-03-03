@@ -10,7 +10,13 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [ ]
+requirements = [
+    'numpy',
+    'psutil',
+    'pyKVFinder',
+    'scikit-learn',
+    'typer'
+]
 
 test_requirements = [ ]
 
@@ -41,7 +47,7 @@ setup(
     keywords='hemefinder',
     name='hemefinder',
     packages=find_packages(include=['hemefinder', 'hemefinder.*']),
-    package_data={'': ['*.json']},
+    package_data={'': ['*.json', '*.pdb']},
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/laura-tiessler/hemefinder',
