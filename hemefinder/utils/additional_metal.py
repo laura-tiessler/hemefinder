@@ -1,9 +1,11 @@
-
-from collections import Counter
-import numpy as np
 import itertools
+from collections import Counter
+from typing import List, Tuple
 
-def _calculate_center_and_radius(probes):
+import numpy as np
+
+
+def _calculate_center_and_radius(probes) -> Tuple[np.ndarray, float]:
     """
     Calculates the most central point of a list and its distance to the furthest
     point.
@@ -25,12 +27,12 @@ def _calculate_center_and_radius(probes):
     """
     probes = np.array(probes)
 
-    #1. Euclidean distance from all to all probes
+    # 1. Euclidean distance from all to all probes
     distance_matrix = np.linalg.norm(probes - probes[:,None], axis=-1)
 
-    #2. Search for the most central point of the list
+    # 2. Search for the most central point of the list
     for i, probe in enumerate(distance_matrix):
-        sum_dist_probe = sum(probe) #Sum of distances to all the other probes
+        sum_dist_probe = sum(probe)  # Sum of distances to all the other probes
         if i == 0:
             min_sum_dist = sum_dist_probe
             best_probe = i
@@ -43,12 +45,10 @@ def _calculate_center_and_radius(probes):
     return probes[best_probe], highest_dist
 
 
-
-
-def _counterSubset(list1, list2):
+def _counterSubset(list1, list2) -> bool:
     """
     Check if all the elements of list1 are contained in list2.
-    
+
     It counts the quantity of each element (i.e. 3-letter amino acid code) 
     in the list1 (e.g. two 'HIS' and one 'ASP') and checks if the list2 contains 
     at least that quantity of every element.
@@ -63,10 +63,10 @@ def _counterSubset(list1, list2):
     bool
         True if list2 contains all the elements of list1. False otherwise
     """
-    #1. Count how many amino acids of each kind
+    # 1. Count how many amino acids of each kind
     c1, c2 = Counter(list1), Counter(list2)
-    
-    #2. Check that list2 contains at least the same number of every amino acid
+
+    # 2. Check that list2 contains at least the same number of every amino acid
     for k, n in c1.items():
         if n > c2[k]:
             return False
@@ -74,7 +74,7 @@ def _counterSubset(list1, list2):
 
 
 def _check_actual_motif(motif_possibilities, probe_coordinators, name_for_res, 
-                            res_for_column):
+                        res_for_column) -> List[str]:
     """
     Checks if the coordinators of a probe match the motif requested by the user.
     A motif is matched when the possible amino acids that coordinate a probe
@@ -107,12 +107,16 @@ def _check_actual_motif(motif_possibilities, probe_coordinators, name_for_res,
     solutions = set()
     for m in list(itertools.combinations(c, len(motif_possibilities[0]))):
         for possible_motif in motif_possibilities:
-            if(_counterSubset(possible_motif, [m_tuple[0] for m_tuple in m])):
+            if (_counterSubset(possible_motif, [m_tuple[0] for m_tuple in m])):
                 solutions.add(tuple(m_tuple[1] for m_tuple in m))
     return solutions
 
-def _check_possible_mutations(mutated_motif_possibilities, 
-                                residues_of_mutated_motif, probe_coordinators):
+
+def _check_possible_mutations(
+    mutated_motif_possibilities,
+    residues_of_mutated_motif,
+    probe_coordinators
+) -> list:
     """
     Calculates the possible mutations to achieve a motif requested by the user.
     A motif is matched when the possible amino acids that coordinate a probe
@@ -140,23 +144,22 @@ def _check_possible_mutations(mutated_motif_possibilities,
     -------
     dict
         Possible mutations for a given residue (indexed by column number)
-        
     """
     c = []
     for i in list(probe_coordinators):
         c.append([])
         for j in probe_coordinators[i]:
             c[-1].append(tuple([j, i]))
-    
+
     c_possibilities = list(itertools.product(*c))
-          
+
     mutations = {}
     for m in c_possibilities:
         for possible_motif in mutated_motif_possibilities:
-            if(_counterSubset(possible_motif, [m_tuple[0] for m_tuple in m])):
+            if (_counterSubset(possible_motif, [m_tuple[0] for m_tuple in m])):
                 for p in probe_coordinators:
                     for r_name in probe_coordinators[p]:
-                        #Exists possibility of mutation
+                        # Exists possibility of mutation
                         if residues_of_mutated_motif.intersection(set([r_name])): 
                             if p not in list(mutations):
                                 mutations[p] = set([r_name])
