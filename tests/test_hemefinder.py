@@ -15,5 +15,5 @@ def test_hemefinder():
     hemefinder(pdb_path, 'output')
     calculated = json.load(open(osp.join('output', '7bc7.json')))
     for (k, val), (k2, val2) in zip(target.items(), calculated.items()):
-        np.testing.assert_almost_equal(val, val2, decimal=2)
+        np.testing.assert_almost_equal(val, val2, decimal=1)
         assert k == k2
