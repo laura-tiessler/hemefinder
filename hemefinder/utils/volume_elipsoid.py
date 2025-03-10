@@ -1,25 +1,14 @@
 import os
 from math import sqrt
-from re import L
 import numpy as np
-import sys
 
 import pyKVFinder
 from numpy import argsort, array, dot, identity, linalg, outer, zeros
 from sklearn.cluster import KMeans
-from scipy import sparse
 from scipy.spatial import cKDTree as KDTree
 
 from .parser import load_cav
-from .print import print_clusters
 from .additional import grid
-
-
-def normalize(density_points):
-    max_p = max(density_points)
-    min_p = min(density_points)
-    diff = max_p - min_p
-    normalized = [float((x - min_p) / diff) for x in density_points]
 
 
 def detect_hole(cluster_cav_HA, cav):
@@ -169,6 +158,7 @@ def volume_pyKVFinder(atomic, pdb: str, outputdir: str, probe_in: float,
         volume_cutoff=volume_cutoff,
         surface=surface,
     )
+    pdb = os.path.basename(pdb)
     surface, volume, area = pyKVFinder.spatial(cavities, step=step)
     probes = []
     for vol in volume.values():

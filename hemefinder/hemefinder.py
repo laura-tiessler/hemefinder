@@ -7,12 +7,11 @@ Copyright by Laura Tiessler-Sala
 """
 import os
 import time
+from typing import *
 from pathlib import Path
-from unittest import result
 
 import numpy as np
 import json
-from json import dumps
 
 from .utils.data import load_stats, load_stats_res, load_stats_two_coord
 from .utils.parser import parse_residues, read_pdb
@@ -24,8 +23,6 @@ from .utils.scoring import (
     clustering,
     centroid,
     residue_scoring,
-    new_probes,
-    clustering_mutation,
     two_coordinants,
 )
 from .utils.volume_elipsoid import (
@@ -33,7 +30,6 @@ from .utils.volume_elipsoid import (
     detect_residues,
     elipsoid,
     volume_pyKVFinder,
-    detect_hole,
 )
 
 
@@ -44,41 +40,71 @@ def normalize(value, maxim, minim, diff):
     return normal
 
 
+def welcome():
+    mssg = "|  Welcome to HemeFinder |"
+    mssg2 = "| by Laura Tiessler-Sala |"
+    print("-" * len(mssg))
+    print(mssg)
+    print(mssg2)
+    print("-" * len(mssg))
+
+
 def hemefinder(
-        target: str, outputdir: str, coordinators: str, min_num_coordinators: int, mutations: list, probe_in: float, 
-    probe_out: float, removal_distance = float, volume_cutoff = float, surface = str
+    target: str,
+    outputdir: str,
+    coordinators: str = '[HIS,TYR,CYS,MET]',
+    min_num_coordinators: int = 1,
+    mutations: List[int] = [],
+    probe_in: float = 1.5,
+    probe_out: float = 11.0,
+    removal_distance: float = 2.5,
+    volume_cutoff: float = 1.5,
+    surface: str = "SES"
 ):
+    """
+    Find heme binding residues in a protein.
+
+    Parameters:
+    target (str): The path to the protein PDB file.
+    outputdir (str): The directory to save the output files.
+    coordinators (str, optional): A string of coordinating residues. Default is '[HIS,TYR,CYS,MET]'.
+    min_num_coordinators (int, optional): The minimum number of coordinating residues. Default is 1.
+    mutations (List[int], optional): A list of residue numbers to mutate. Default is an empty list.
+    probe_in (float, optional): The inner radius of the probe. Default is 1.5.
+    probe_out (float, optional): The outer radius of the probe. Default is 11.0.
+    removal_distance (float, optional): The distance to remove from the probe. Default is 2.5.
+    volume_cutoff (float, optional): The volume cutoff for cavities. Default is 1.5.
+    surface (str, optional): The surface to use for cavity detection. Default is "SES".
+
+    Returns:
+    None
+    """
+    os.makedirs(outputdir, exist_ok=True)
     start = time.time()
     # Load stats for bimodal distributions
     stats = load_stats()
     stats_res = load_stats_res()
     stats_two_coord = load_stats_two_coord()
 
-    #Transform input to list for residues and mutation
+    # Transform input to list for residues and mutation
     coordinators = list(map(str, coordinators.strip('[]').split(',')))
 
     # Read protein and find possible coordinating residues
     atomic = read_pdb(target, outputdir)
-    (
-        alphas,
-        betas,
-        res_name_number_coord,
-        all_alphas,
-        all_betas,
-        residues_names,
-        residues_ids,
-    ) = parse_residues(target, atomic, coordinators, stats)
-    # Detect cavities and analyse possible coordinations
-    probes = volume_pyKVFinder(atomic, target, outputdir, probe_in, probe_out, removal_distance, volume_cutoff, surface)
-    results_by_cluster = {}
+    (alphas, betas, res_name_number_coord, all_alphas,
+     all_betas, residues_names, residues_ids) = parse_residues(target, atomic, coordinators, stats)
 
-    # all_probes = np.concatenate(probes)
+    # Detect cavities and analyse possible coordinations
+    probes = volume_pyKVFinder(atomic, target, outputdir, probe_in, probe_out,
+                               removal_distance, volume_cutoff, surface)
+    results_by_cluster = {}
 
     if len(mutations) != 0:
         alphas = all_alphas
         betas = all_betas
 
-    for i, probe in enumerate(probes):  # Loop throug different cluster and its proves
+    # Loop throug different cluster and its probes
+    for i, probe in enumerate(probes):
         final_results = {}
         dic_coordinating = {}
         scores = coordination_score(
@@ -116,7 +142,8 @@ def hemefinder(
     outputfile = os.path.join(outputdir, basename)
 
     final_dic = {}
-    # Loop through all the results of different clusters and selects the one that has the highest score
+    # Loop through all the results of different clusters and selects the one 
+    # which has the highest score
     for res in results_by_cluster.values():
         for res_ind, res_ind_values in res.items():
             if res_ind not in final_dic:
@@ -150,57 +177,44 @@ def hemefinder(
     max_scores = max(scores)
     min_score = min(scores)
     diff_score = max_scores - min_score
-    scores_eli = [
-        val["score_elipsoid"]
-        for key, val in final_dic.items()
-        if "score_elipsoid" in val
-    ]
-    max_scores_eli = max(scores_eli)  # inversed
-    min_score_eli = min(scores_eli)  # inversed
+    scores_eli = [val["score_elipsoid"] for val in final_dic.values()
+                  if "score_elipsoid" in val]
+    max_scores_eli = max(scores_eli)  # reversed
+    min_score_eli = min(scores_eli)  # reversed
     diff_score_eli = max_scores_eli - min_score_eli
-    scores_res = [
-        val["score_res"] for key, val in final_dic.items() if "score_res" in val
-    ]
+    scores_res = [val["score_res"] for val in final_dic.values()
+                  if "score_res" in val]
     max_scores_res = max(scores_res)
     min_score_res = min(scores_res)
     diff_score_res = max_scores_res - min_score_res
 
     for k, v in final_dic.items():
-        score_norm = normalize(final_dic[k]["score"], max_scores, min_score, diff_score)
-        score_norm_res = normalize(
-            final_dic[k]["score_res"], max_scores_res, min_score_res, diff_score_res
-        )
-        score_norm_eli = normalize(
-            final_dic[k]["score_elipsoid"],
-            max_scores_eli,
-            min_score_eli,
-            diff_score_eli,
-        )
+        score_norm = normalize(final_dic[k]["score"], max_scores, min_score,
+                               diff_score)
+        score_norm_res = normalize(final_dic[k]["score_res"], max_scores_res,
+                                   min_score_res, diff_score_res)
+        score_norm_eli = normalize(final_dic[k]["score_elipsoid"],
+                                   max_scores_eli, min_score_eli,
+                                   diff_score_eli)
         final_dic[k]["total_score_norm"] = score_norm + score_norm_eli + score_norm_res
 
-    sorted_results = {
-        k: v
-        for k, v in sorted(
-            final_dic.items(), key=lambda x: x[1]["total_score_norm"], reverse=True
-        )
-    }
+    sorted_results = {k[0].item(): v for k, v in sorted(final_dic.items(),
+                                              key=lambda x: x[1]["total_score_norm"],
+                                              reverse=True)}
+
     num = 1
     for k, v in sorted_results.items():
-        print(
-            num,
-            k,
-            v["total_score_norm"],
-        )
+        print(num, k, v["total_score_norm"])
         num += 1
+
     create_PDB(sorted_results, outputfile)
-    sorted_results_str = {
-        str(k): v["total_score_norm"] for k, v in sorted_results.items()
-    }
+    sorted_results_str = {str(k): v["total_score_norm"]
+                          for k, v in sorted_results.items()}
     json_object = json.dumps(sorted_results_str, indent=4)
     out_json = outputfile + ".json"
     with open(out_json, "w") as outfile_json:
         outfile_json.write(json_object)
-    
+
     for fname in os.listdir(outputdir):
         if fname.startswith("cavity") or fname.startswith("cluster"):
             os.remove(os.path.join(outputdir, fname))

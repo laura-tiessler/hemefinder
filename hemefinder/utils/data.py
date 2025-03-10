@@ -9,13 +9,15 @@ def load_stats():
         stats = json.load(json_reader)
     return stats
 
+
 def load_stats_res():
     current_dir = os.path.dirname(__file__)
     stats_path = os.path.join(current_dir, 'stats', 'residue_stats.json')
     with open(stats_path) as json_reader:
         stats = json.load(json_reader)
     return stats
-    
+
+
 def load_stats_two_coord():
     current_dir = os.path.dirname(__file__)
     stats_path = os.path.join(current_dir, 'stats', 'two_coord_data.json')
@@ -73,7 +75,6 @@ ANGLE_PAB = {
 }
 
 
-
 CONVERT_RES_NAMES = {
     'CYX': 'CYS',
     'CYM': 'CYS',
@@ -88,6 +89,6 @@ CONVERT_RES_NAMES = {
 
 
 RESIDUE_LIST = ['CYS', 'ASP', 'SER', 'GLN', 'LYS',
-               'ILE', 'PRO', 'THR', 'PHE', 'ASN',
-               'GLY', 'HIS', 'LEU', 'ARG', 'TRP',
-               'ALA', 'VAL', 'GLU', 'TYR', 'MET']
+                'ILE', 'PRO', 'THR', 'PHE', 'ASN',
+                'GLY', 'HIS', 'LEU', 'ARG', 'TRP',
+                'ALA', 'VAL', 'GLU', 'TYR', 'MET']

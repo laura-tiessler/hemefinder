@@ -1,14 +1,8 @@
-from .cli import client
+"""Console script for hemefinder."""
+
+import typer
 from .hemefinder import hemefinder
 
 
 def main():
-    """
-    Execute the program.
-    """
-    args = client()
-    hemefinder(**args)
-
-
-if __name__ == '__main__':
-    main()
+    hemefinder("hemefinder/data/7bc7.pdb", 'output')

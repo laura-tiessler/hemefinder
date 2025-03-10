@@ -1,10 +1,11 @@
-from math import nan
-from ossaudiodev import SOUND_MIXER_SYNTH
-from statistics import mean
-import numpy as np
 import math
-from .additional import grid
 from itertools import combinations
+from typing import List, Union
+
+import numpy as np
+
+from .additional import grid
+
 
 chemical_nature = {
     "aromatic": {"PHE", "TYR", "TRP"},
@@ -36,7 +37,22 @@ def coordination_score(
     res_name_num: np.array,
     mutations: list,
     residues_ids: np.array,
-):
+) -> List[tuple]:
+    """
+    Calculate the coordination score for a given set of probes.
+
+    Args:
+        alphas (dict): Dictionary of alpha carbon coordinates.
+        betas (dict): Dictionary of beta carbon coordinates.
+        stats (dict): Dictionary of statistical data.
+        probes (np.array): Array of probe coordinates.
+        res_name_num (np.array): Array of residue names and numbers.
+        mutations (list): List of mutations.
+        residues_ids (np.array): Array of residue IDs.
+
+    Returns:
+        list: List of probe coordinates, possible coordinators, and scores.
+    """
     results_score = []
     for x, probe in enumerate(probes):
         alpha_dists = alphas - probe
@@ -58,7 +74,22 @@ def gaussian_scoring(
     mutations: list,
     residues_ids: np.array,
 ) -> float:
+    """
+    Calculate the fitness of amino acids based on their distance to the alpha carbon and beta carbon atoms of the coordinating residue.
 
+    Parameters:
+    d1 (np.array): An array of distances from the alpha carbon atom to the coordinating residue.
+    d2 (np.array): An array of distances from the beta carbon atom to the coordinating residue.
+    angle (np.array): An array of angles between the alpha carbon atom, the coordinating residue, and the beta carbon atom.
+    stats (dict): A dictionary containing statistics for each amino acid.
+    res_name_num (dict): A dictionary containing the name and number of each amino acid.
+    mutations (list): A list of mutations to be considered.
+    residues_ids (np.array): An array of residue IDs.
+
+    Returns:
+    possible_coordinators (list): A list of possible coordinating residues.
+    fitness (list): A list of fitness scores for each possible coordinating residue.
+    """
     alpha_scores = []
     beta_scores = []
     angle_scores = []
@@ -88,8 +119,6 @@ def gaussian_scoring(
                 score_total = (score_ca + score_cb + score_angle) / 3
                 possible_coordinators.append(res_name_num[ind][1])
                 fitness.append(score_total * stats[res_name_num[ind][0]]["fitness"])
-                # fitness.append(score_total) # NO afectat per la proporcio a base de dades
-
     else:
         res = mutations[0]
         for i in range(len(d1)):
@@ -103,7 +132,9 @@ def gaussian_scoring(
 
         possible_coordinators = []
         ind_coordinators = np.where(
-            (alpha_scores > 0.001) & (beta_scores > 0.001) & (angle_scores > 0.01)
+            (alpha_scores > 0.001) &
+            (beta_scores > 0.001) &
+            (angle_scores > 0.01)
         )[0]
         if len(ind_coordinators) == 0:
             fitness = 0
@@ -116,12 +147,22 @@ def gaussian_scoring(
                 score_total = (score_ca + score_cb + score_angle) / 3
                 possible_coordinators.append(residues_ids[ind])
                 fitness.append(score_total * stats[res]["fitness"])
-                # fitness.append(score_total) # NO afectat per la proporcio a base de dades
 
     return possible_coordinators, fitness
 
 
 def clustering(scores, dic_coordinating, mutations):
+    """
+    Clustering function to group similar residues based on their scores and coordinates.
+
+    Parameters:
+    scores (list): A list of tuples containing the coordinates, residues, and scores.
+    dic_coordinating (dict): A dictionary to store the clustering results.
+    mutations (list): A list of mutations to be considered in the clustering process.
+
+    Returns:
+    dic_coordinating (dict): The updated dictionary with the clustering results.
+    """
     for coord, residues, score in scores:
         if len(residues) == 0:
             continue
@@ -211,14 +252,23 @@ def clustering(scores, dic_coordinating, mutations):
 
 
 def clustering_mutation(scores, dic_coordinating, mutations):
+    """
+    Perform clustering mutation on the given scores and update the dictionary of coordinating residues.
+
+    Parameters:
+    scores (list): A list of tuples containing the coordinates and scores.
+    dic_coordinating (dict): A new dictionary of coordinating residues.
+    mutations (list): A list of mutations.
+
+    Returns:
+    dic_coordinating (dict): The updated dictionary of coordinating residues.
+    """
     for coord, score in scores:
-        print(score)
         coord_residues, fitness = score
         if len(coord_residues) == 0:
             continue
         else:
             for i, res in enumerate(coord_residues):
-                print(res)
                 if res not in dic_coordinating:
                     dic_coordinating[res] = {
                         "probes": [coord],
@@ -230,11 +280,22 @@ def clustering_mutation(scores, dic_coordinating, mutations):
                     dic_coordinating[res]["probes"].append(coord)
                     dic_coordinating[res]["score"] += fitness[i]
                     dic_coordinating[res]["all_scores"].append(fitness[i])
-    print(dic_coordinating)
     return dic_coordinating
 
 
 def geometry(v1: np.array, v2: np.array):
+    """
+    Calculate the distance and angle between two sets of vectors.
+
+    Parameters:
+    v1 (np.array): A 2D array of shape (n, 3) representing the percentage of the total distance between the two vectors.
+    v2 (np.array): A 2D array of shape (n, 3) representing the percentage of the total distance between the two vectors.
+
+    Returns:
+    v1_distances (np.array): A 1D array of shape (n,) representing the distance between the two vectors.
+    v2_distances (np.array): A 1D array of shape (n,) representing the distance between the two vectors.
+    v1v2_angles (np.array): A 1D array of shape (n,) representing the angle between the two vectors.
+    """
     v1_distances = np.linalg.norm(v1, axis=1)
     v2_distances = np.linalg.norm(v2, axis=1)
     v1_v2_distances = np.linalg.norm(v1 - v2, axis=1)
@@ -255,7 +316,7 @@ def bimodal(
     chi2: float,
     nu2: float,
     sigma2: float,
-) -> np.array or float:
+) -> Union[np.ndarray, float]:
     """
     Helper function for the `gaussian_score` function that computes
     the score associated to a certain set of parameters for the input
@@ -281,7 +342,12 @@ def bimodal(
     return first_gaussian + second_gaussian
 
 
-def _normpdf(x: np.array or float, chi: float, nu: float, std: float):
+def _normpdf(
+    x: Union[np.ndarray, float],
+    chi: float,
+    nu: float,
+    std: float
+):
     """
     Helper function for `double_gaussian`, computes the PDF of a
     gaussian function.
@@ -328,6 +394,20 @@ def centroid(coord_residues):
 
 
 def centroid_elipsoid(centroid, elipsoid, elen, axes, center, d2):
+    """
+    Calculate the score of an elipsoid based on its centroid and other parameters.
+
+    Args:
+        centroid (list): The centroid of the elipsoid.
+        elipsoid (list): A list of points defining the elipsoid.
+        elen (list): A list of lengths of the elipsoid's axes.
+        axes (list): A list of axes of the elipsoid.
+        center (list): The center of the elipsoid.
+        d2 (float): A distance value.
+
+    Returns:
+        float: The score of the elipsoid.
+    """
     probes_elipsoid = np.array(elipsoid).reshape(len(elipsoid), 3)
     lenght_array = len(probes_elipsoid)
     sum_x = np.sum(probes_elipsoid[:, 0])
@@ -339,10 +419,7 @@ def centroid_elipsoid(centroid, elipsoid, elen, axes, center, d2):
         (np.array(centroid_eli) - np.array(centroid_proves)) ** 2, axis=0
     )
     dist = np.sqrt(squared_dist)
-    volumen_eli = float(4 / 3) * math.pi * elen[0] * elen[1] * elen[2]
-    score_elipsoid = 3.12626 / dist
-    score_elipsoid_2 = dist / volumen_eli
-    score_elipsoid_3 = dist / elen[0]
+
     mean_axis = elen[0] + elen[1] + elen[2] / 3
     score_elipsoid_4 = dist / mean_axis
 
@@ -353,10 +430,6 @@ def centroid_elipsoid(centroid, elipsoid, elen, axes, center, d2):
     value_2 = abs(coordinates[1] / elen[1])
     value_3 = abs(coordinates[2] / elen[2])
     score_elipsoid_4 = 1 - ((value1 + value_2 + value_3) / 3)
-    centrality_1 = (centroid_proves[0] - centroid_eli[0]) ** 2 / elen[0] ** 2
-    centrality_2 = (centroid_proves[1] - centroid_eli[1]) ** 2 / elen[1] ** 2
-    centrality_3 = (centroid_proves[2] - centroid_eli[2]) ** 2 / elen[2] ** 2
-    central = 1 - (centrality_1 + centrality_2 + centrality_3)
     return score_elipsoid_4
 
 
@@ -415,8 +488,24 @@ def angle_distance_3points(a, b, m):
 
 
 def two_coordinants(
-    alphas, betas, residues, centroid, residues_ids, residues_names, stats_two_coord
+    alphas, betas, residues, centroid,
+    residues_ids, residues_names, stats_two_coord
 ):
+    """
+    This function takes in several parameters and returns a string.
+
+    Parameters:
+    alphas (list): A list of alpha coordinates.
+    betas (list): A list of beta coordinates.
+    residues (list): A list of two residue names.
+    centroid (tuple): A tuple representing the centroid.
+    residues_ids (list): A list of residue IDs.
+    residues_names (list): A list of residue names.
+    stats_two_coord (dict): A dictionary containing statistics for two coordinates.
+
+    Returns:
+    str: A string indicating whether the conditions are met or not.
+    """
     allowed_combinations = [
         "['CYS', 'HIS']",
         "['HIS', 'HIS']",
