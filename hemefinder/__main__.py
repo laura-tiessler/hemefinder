@@ -5,4 +5,4 @@ from .hemefinder import hemefinder
 
 
 def main():
-    hemefinder("hemefinder/data/7bc7.pdb", 'output')
+    typer.run(hemefinder)
