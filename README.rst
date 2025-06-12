@@ -24,15 +24,11 @@ The installtion requires a conda environment with few dependencies:
         > conda activate {name}
 
 
-        > pip install hemefinder
+        > pip install git+https://github.com/laura-tiessler/hemefinder
 
 
         > conda install -c anaconda -c conda-forge -c jmcmurray numpy scikit-learn psutil json
 
-
-For the current development version substitute the third line by:
-
-        > pip install git+https://github.com/laura-tiessler/hemefinder
 
 
 Usage
