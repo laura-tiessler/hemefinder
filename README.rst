@@ -14,7 +14,7 @@ Features
 * Design of new ArM based on heme 
 
 Installation
---------
+-------------
 
 The installtion requires a conda environment with few dependencies:
 
