@@ -3,12 +3,10 @@
 """The setup script."""
 
 from setuptools import setup, find_packages
+from pathlib import Path
 
-with open('README.rst') as readme_file:
-    readme = readme_file.read()
-
-with open('HISTORY.rst') as history_file:
-    history = history_file.read()
+this_directory = Path(__file__).parent
+readme = (this_directory / "README.rst").read_text()
 
 requirements = [
     'numpy',
@@ -25,14 +23,10 @@ setup(
     author_email='laura.tiessler@uab.cat',
     python_requires='>=3.6',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
     ],
     description="Prediction of heme binding cavities",
     entry_points={
@@ -45,12 +39,13 @@ setup(
     long_description=readme,
     include_package_data=True,
     keywords='hemefinder',
+    long_description_content_type='text/x-rst',
     name='hemefinder',
     packages=find_packages(include=['hemefinder', 'hemefinder.*']),
     package_data={'': ['*.json', '*.pdb']},
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/laura-tiessler/hemefinder',
-    version='0.1.1',
+    version='0.0.1',
     zip_safe=False,
 )
