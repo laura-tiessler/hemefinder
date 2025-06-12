@@ -107,10 +107,7 @@ def parse_residues(target: str, molecule: np.array, coordinators: list, stats: d
     residues_ids = np.array(residues_ids)
 
     if len(all_alphas) != len(all_betas):
-        print("There is an error in residues composition")
-        f = open("/HDD/3rd_year/hemefinder/benchmark_v3/error_residues.txt", "a")
-        f.write(target + "\n")
-        sys.exit()
+        raise IndexError("There is an error in residue composition. Some residues might be incomplete, lacking alpha or beta carbons.")
 
     return (
         alphas_coord,
