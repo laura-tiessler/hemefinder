@@ -42,7 +42,7 @@ setup(
     },
     install_requires=requirements,
     license="BSD license",
-    long_description=readme + '\n\n' + history,
+    long_description=readme,
     include_package_data=True,
     keywords='hemefinder',
     name='hemefinder',
