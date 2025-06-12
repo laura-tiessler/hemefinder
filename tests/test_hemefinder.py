@@ -3,8 +3,6 @@
 import json
 import os.path as osp
 
-import numpy as np
-
 from hemefinder import hemefinder
 
 
