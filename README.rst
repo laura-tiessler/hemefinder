@@ -14,7 +14,7 @@ Features
 * Design of new ArM based on heme 
 
 Installation
---------
+-------------
 
 The installtion requires a conda environment with few dependencies:
 
@@ -31,7 +31,6 @@ The installtion requires a conda environment with few dependencies:
 
 
         > conda install -c anaconda -c conda-forge -c jmcmurray numpy scikit-learn psutil json
-
 
 
 Usage
