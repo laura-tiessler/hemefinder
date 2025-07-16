@@ -24,15 +24,14 @@ The installtion requires a conda environment with few dependencies:
         > conda activate {name}
 
 
+        > git clone https://github.com/laura-tiessler/hemefinder
+
+
         > pip install hemefinder
 
 
         > conda install -c anaconda -c conda-forge -c jmcmurray numpy scikit-learn psutil json
 
-
-For the current development version substitute the third line by:
-
-        > pip install git+https://github.com/laura-tiessler/hemefinder
 
 
 Usage
@@ -81,12 +80,13 @@ Example:
 
 Example of search for heme binding site with minimum of 2 coordinating His or Cys residues.
 
-    > hemefinder 1dkh --coordinators ['HIS', 'CYS'] --output results_1dkh
+    > cd hemefinder
+    > hemefinder examples/1dkh_clean.pdb --coordinators ['HIS', 'CYS'] --output results_1dkh
 
 
 Example of search for heme binding site and introduce a His mutation if necessary.
 
-    > hemefinder 1dkh --mutations ['HIS'] --output results_1dkh
+    > hemefinder examples/1dkh_clean.pdb --mutations ['HIS'] --output results_1dkh
     
 License
 --------
