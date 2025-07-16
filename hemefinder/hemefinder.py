@@ -174,6 +174,13 @@ def hemefinder(
     final_dic = {key: final_dic[key] for key in final_dic if key not in to_remove}
 
     scores = [val["score"] for key, val in final_dic.items() if "score" in val]
+    if len(scores) == 0:
+        print("No pockets of adequate volume were found in the protein.",
+              "Maybe the pocket is buried in this conformation and could be exposed in another one.")
+        end = time.time()
+        print(f"\nComputation took {round(end - start, 2)} s")
+        return
+
     max_scores = max(scores)
     min_score = min(scores)
     diff_score = max_scores - min_score
